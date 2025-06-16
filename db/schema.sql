@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS product (
     price REAL NOT NULL,
     stock REAL NOT NULL,
     stock_low REAL NOT NULL,
-    FOREIGN KEY (category_id) REFERENCES category(id)
+    FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS category;

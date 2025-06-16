@@ -1,7 +1,7 @@
 from db.db import get_connection
 from datetime import datetime
 
-from product import Product
+from models.product import Product
 
 def save_transaction(product_id, quantity, type, obs ="", date = datetime.now().isoformat(timespec="seconds"), sale_id=None, purchase_id=None, conn=None):
     if type not in ["entrada", "salida"]:
