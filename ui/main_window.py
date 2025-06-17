@@ -1,6 +1,8 @@
+import os
 from itertools import product
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, QLabel
 from PySide6.QtCore import Qt
 from ui.sales_page import SalesPage
 from ui.purchases_page import PurchasesPage
@@ -21,6 +23,8 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("LaChapita Manager")
+        IMG_PATH = os.path.join(os.path.dirname(__file__), "..", "logo.png")
+        self.setWindowIcon(QIcon(IMG_PATH))
         self.resize(800, 600)
 
         # Estilo de botones
@@ -55,6 +59,13 @@ class MainWindow(QWidget):
 
         sidebar = QVBoxLayout(self.sidebar_widget)
         sidebar.setAlignment(Qt.AlignmentFlag.AlignTop)
+        logo_label = QLabel()
+        logo_label.setPixmap(QIcon(os.path.join(os.path.dirname(__file__), "..", "logo.png")).pixmap(100, 100))
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        sidebar.addStretch()
+        sidebar.addWidget(logo_label)
+        sidebar.addStretch()
+
         self.inventory_btn = QPushButton("Inventario")
         self.nav_btns.append(self.inventory_btn)
         self.sales_btn = QPushButton("Ventas")
@@ -72,15 +83,24 @@ class MainWindow(QWidget):
             btn.setStyleSheet(button_style)
             btn.setCheckable(True)
             sidebar.addWidget(btn)
+        sidebar.addStretch()  # Espacio al final de la barra lateral
 
         # Área de contenido (stacked widget)
+
+        self.inventory_page = InventoryPage()
+        self.sales_page = SalesPage()
+        self.purchases_page = PurchasesPage()
+        self.clients_page = ClientsPage()
+        self.suppliers_page = SuppliersPage()
+        self.categories_page = CategoriesPage()
+
         self.stack = QStackedWidget()
-        self.stack.addWidget(InventoryPage())
-        self.stack.addWidget(SalesPage())
-        self.stack.addWidget(PurchasesPage())
-        self.stack.addWidget(ClientsPage())
-        self.stack.addWidget(SuppliersPage())
-        self.stack.addWidget(CategoriesPage())
+        self.stack.addWidget(self.inventory_page)
+        self.stack.addWidget(self.sales_page)
+        self.stack.addWidget(self.purchases_page)
+        self.stack.addWidget(self.clients_page)
+        self.stack.addWidget(self.suppliers_page)
+        self.stack.addWidget(self.categories_page)
         self.stack.currentChanged.connect(self.on_page_changed)
 
         # Conectar botones con páginas
@@ -98,6 +118,9 @@ class MainWindow(QWidget):
         # Agregar al layout principal
         main_layout.addWidget(self.sidebar_widget, 1)
         main_layout.addWidget(self.stack, 4)
+
+        # Señales
+        self.inventory_page.product_changed.connect(self.categories_page.refresh)
 
     def on_page_changed(self, index):
         current_page = self.stack.widget(index)

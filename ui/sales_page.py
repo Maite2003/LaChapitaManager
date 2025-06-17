@@ -2,12 +2,15 @@ from functools import partial
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QDateEdit, QDoubleSpinBox,
-    QComboBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView
+    QComboBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QDialog
 )
 from PySide6.QtCore import Qt, QDate
 
-from ui.add_sale_dialog import AddSaleDialog
+from models.client import Client
+from ui.sale_dialog import AddSaleDialog
 from ui.sale_detail_dialog import SaleDetailDialog
+
+import models.sale as Sale
 
 
 class SalesPage(QWidget):
@@ -65,7 +68,7 @@ class SalesPage(QWidget):
         # --- Tabla de ventas ---
         self.table = QTableWidget()
         self.table.setColumnCount(5) # ID (hidden), date, client, total, details button
-        self.table.setHorizontalHeaderLabels(["ID", "Fecha", "Cliente", "Monto", " "])
+        self.table.setHorizontalHeaderLabels(["ID", "Fecha", "Cliente", "Monto", "      "])
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setSortingEnabled(True)
         header = self.table.horizontalHeader()
@@ -88,7 +91,7 @@ class SalesPage(QWidget):
 
     def load_clients(self):
         # Aquí cargás clientes desde la DB, ejemplo:
-        clients = ["Cliente A", "Cliente B", "Cliente C"]
+        clients = Client.get_all()
         self.client_filter.addItems(clients)
 
     def load_filtered_sales(self):
@@ -101,22 +104,18 @@ class SalesPage(QWidget):
 
         # Aquí deberías hacer la consulta filtrada a la base de datos.
         # Por ahora simulo con datos ficticios:
-        sales = [
-            {"id": 0, "fecha": "2025-06-01", "cliente": "Cliente A", "monto": 150},
-            {"id" : 1, "fecha": "2025-06-10", "cliente": "Cliente B", "monto": 50},
-            {"id": 2, "fecha": "2025-06-12", "cliente": "Cliente C", "monto": 100},
-        ]
+        sales = Sale.get_all()
 
         # Filtrar ventas (solo ejemplo con filtros básicos)
         filtered_sales = []
         for s in sales:
-            f = s["fecha"]
+            f = s["date"]
             f_date = QDate.fromString(f, "yyyy-MM-dd").toPython()
             if not (date_from <= f_date <= date_to):
                 continue
-            if not (min_amount <= s["monto"] <= max_amount):
+            if not (min_amount <= s["total"] <= max_amount):
                 continue
-            if client != "Todos" and s["cliente"] != client:
+            if client != "Todos" and s["client"] != client:
                 continue
             filtered_sales.append(s)
 
@@ -133,16 +132,16 @@ class SalesPage(QWidget):
             self.table.setItem(row, 0, QTableWidgetItem(str(sale['id'])))
 
             # Columna Fecha
-            item_fecha = QTableWidgetItem(sale["fecha"])
-            fecha_qdate = QDate.fromString(sale["fecha"], "yyyy-MM-dd")
+            item_fecha = QTableWidgetItem(sale["date"])
+            fecha_qdate = QDate.fromString(sale["date"], "yyyy-MM-dd")
             item_fecha.setData(Qt.UserRole, fecha_qdate)  # Para ordenar correctamente
             self.table.setItem(row, 1, item_fecha)
 
-            self.table.setItem(row, 2, QTableWidgetItem(sale["cliente"]))
+            self.table.setItem(row, 2, QTableWidgetItem(sale["client"]))
 
             # Columna Monto
-            item_monto = QTableWidgetItem(str(sale["monto"]))
-            item_monto.setData(Qt.UserRole, sale["monto"])  # Ordenar como número
+            item_monto = QTableWidgetItem(str(sale["total"]))
+            item_monto.setData(Qt.UserRole, sale["total"])  # Ordenar como número
             self.table.setItem(row, 3, item_monto)
 
             # Botón de Detalles
@@ -169,5 +168,15 @@ class SalesPage(QWidget):
 
     def open_add_sale_dialog(self):
         dialog = AddSaleDialog(self)
-        if dialog.exec():
-            self.load_sales()
+        if dialog.exec() and dialog.result() == QDialog.Accepted:
+            data = dialog.get_data()
+
+            details = data.get('details', [])
+            date = data.get('date')
+            client_id = data.get('client_id')
+
+            if not data or data == []:
+                return QMessageBox.warning(self, "Error", "Agrega al menos un producto.")
+
+            Sale.save_sale(date=date, client=client_id, items=details)
+            self.load_filtered_sales()

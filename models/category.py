@@ -4,7 +4,8 @@ def get_all():
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT id, name FROM category ORDER BY name")
-    return [dict(row) for row in cursor.fetchall()]
+        all = cursor.fetchall()
+    return [{'id': row['id'], 'name': row['name']} for row in all]
 
 def add_category(name):
     with get_connection() as conn:
@@ -24,3 +25,11 @@ def rename_category(old_name, new_name):
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("UPDATE category SET name = ? WHERE name = ?", (new_name, old_name))
+
+@staticmethod
+def get_id_by_name(name):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM category WHERE name = ?", (name,))
+        row = cursor.fetchone()
+        return row[0] if row else None

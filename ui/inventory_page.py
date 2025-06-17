@@ -2,17 +2,20 @@ from functools import partial
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QCheckBox, QTableWidget, QTableWidgetItem,
-    QPushButton, QHeaderView
+    QPushButton, QHeaderView, QMessageBox
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from models.product import Product
 import models.category as Category
-from ui.add_product_dialog import AddProductDialog
+from models.product_variant import ProductVariant
+from ui.product_dialog import AddProductDialog
 
 
 class InventoryPage(QWidget):
+    product_changed = Signal()
     def __init__(self):
         super().__init__()
+
 
         main_layout = QVBoxLayout(self)
 
@@ -25,7 +28,7 @@ class InventoryPage(QWidget):
         filters_layout = QHBoxLayout()
 
         self.add_product_btn = QPushButton("Agregar producto")
-        self.add_product_btn.clicked.connect(self.open_add_product_dialog)
+        self.add_product_btn.clicked.connect(self.open_product_dialog)
         filters_layout.addWidget(self.add_product_btn)
 
         # Barra de búsqueda
@@ -49,13 +52,13 @@ class InventoryPage(QWidget):
 
         # Tabla de productos
         self.table = QTableWidget()
-        self.table.setColumnCount(5)  # Id (hidden), Name, Category, Stock, Edit button
-        self.table.setHorizontalHeaderLabels(["ID", "Nombre", "Categoría", "Stock", " "])
+        self.table.setColumnCount(5)  # Id (hidden), Name, Category, Variants, Stock, Edit button
+        self.table.setHorizontalHeaderLabels(["Nombre", "Categoría", "Variantes", "Stock", "      "])
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table.hideColumn(0)  # Ocultar columna de ID
         header = self.table.horizontalHeader()
 
         # Estirar las primeras 3 columnas (Nombre, Categoría, Stock)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
@@ -102,7 +105,7 @@ class InventoryPage(QWidget):
                 continue
             if category != "Todas las categorías" and p["category"] != category:
                 continue
-            if low_stock and p["stock"] < p["low_stock"]:
+            if low_stock and p["stock"] < p["stock_low"]:
                 continue
             if no_stock and p["stock"] == 0:
                 continue
@@ -114,9 +117,10 @@ class InventoryPage(QWidget):
         # Actualizar tabla
         self.table.setRowCount(len(filtered))
         for row, product in enumerate(filtered):
-            self.table.setItem(row, 0, QTableWidgetItem(str(product['id'])))
-            self.table.setItem(row, 1, QTableWidgetItem(product["name"]))
-            self.table.setItem(row, 2, QTableWidgetItem(product["category"]))
+            self.table.setItem(row, 0, QTableWidgetItem(product["name"]))
+            self.table.setItem(row, 1, QTableWidgetItem(product["category"]))
+            variant_count = len(ProductVariant.get_by_product_id(product['id']))
+            self.table.setItem(row, 2, QTableWidgetItem(str(variant_count)))
             stock_item = QTableWidgetItem(str(product["stock"]))
             # Opcional: mostrar stock en rojo si 0
             if product["stock"] == 0:
@@ -128,11 +132,10 @@ class InventoryPage(QWidget):
             self.table.setItem(row, 3, stock_item)
             # Botón de Detalles
             details_btn = QPushButton("Editar")
-            details_btn.clicked.connect(partial(self.show_product_details, product['id']))
+            details_btn.clicked.connect(partial(self.open_product_dialog, product))
             details_btn.setStyleSheet("padding: 4px;")
             self.table.setCellWidget(row, 4, details_btn)
 
-            self.table.setColumnHidden(0, True)  # Ocultamos el ID
             header = self.table.horizontalHeader()
 
             # Estirar las primeras 3 columnas (Nombre, Categoría, Stock)
@@ -147,13 +150,71 @@ class InventoryPage(QWidget):
         """
         Refresca la lista de productos y actualiza la tabla.
         """
+        self.product_changed.emit()
         self.load_products()
 
-    def open_add_product_dialog(self):
-        dialog = AddProductDialog(parent=self)
-        if dialog.exec():
-            self.load_products()  # Recargar la lista o tabla de productos
+    def validate_data(self, data):
+        name = data.get("name")
+        unit = data.get("unit")
+        category = data.get("category")
+        stock_low = data.get("stock_low", 0)
+        stock = data.get("stock", 0)
 
-    def show_product_details(self, product_id):
-        dialog = AddProductDialog(id=product_id, parent=self)
-        dialog.exec()
+        # Validaciones básicas
+        if not name or not unit or category=="":
+            return QMessageBox.warning(self, "Error", "Completa todos los campos.")
+        if stock_low < 0:
+            return QMessageBox.warning(self, "Error", "El stock mínimo no puede ser negativo.")
+        if stock < 0:
+            return QMessageBox.warning(self, "Error", "El stock no puede ser negativo.")
+        return True
+
+    def open_product_dialog(self, p=None):
+        dialog = AddProductDialog(product=p, parent=self)
+
+        if dialog.exec() == AddProductDialog.DialogCode.Accepted:
+            data = dialog.get_data()
+            if self.validate_data(data) != True:
+                return
+
+            name = data['name']
+            unit = data['unit']
+            category_id = Category.get_id_by_name(name=data['category'])
+            variants = data.get('variants', [])
+
+
+            if variants:
+                # Precio y stock se calculan por variantes
+                stock_low = 0  # o el valor que quieras usar cuando hay variantes
+                stock = sum(v['stock'] for v in variants)
+                prices = [v['price'] for v in variants]
+                price_min = min(prices)
+                price_max = max(prices)
+                price = (price_max - price_min) / 2 if len(prices) > 1 else price_min
+            else:
+                price = data.get('price', 0.0)
+                stock_low = data.get('stock_low', 0)
+                stock = data.get('stock', 0)
+
+            try:
+                if p:
+                    Product.update_product(
+                        product_id=p["id"], name=name, unit=unit, category_id=category_id, stock=stock, stock_low=stock_low, price=price, variants=variants
+                    )
+                else:
+                    product_id = Product(
+                        name=name,
+                        unit=unit,
+                        category=category_id,
+                        price=price,
+                        stock=stock,
+                        stock_low=stock_low
+                    ).save()
+                    if variants:
+                        Product.save_variants(variants_list=variants, id=product_id)
+            except Exception as e:
+                return QMessageBox.critical(self, "Error", f"No se pudo guardar el producto:\n{str(e)}")
+            self.refresh()
+
+
+
