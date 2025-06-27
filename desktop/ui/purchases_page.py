@@ -170,7 +170,7 @@ class PurchasesPage(QWidget):
             # Date column
             item_date = QTableWidgetItem(purchase["date"])
             date_qdate = QDate.fromString(purchase["date"], "dd-MM-yyyy")
-            item_date.setData(Qt.UserRole, date_qdate)
+            item_date.setData(Qt.ItemDataRole.UserRole, date_qdate)
             self.table.setItem(row, 1, item_date)
 
             if supplier:
@@ -180,7 +180,7 @@ class PurchasesPage(QWidget):
 
             # Amount column
             item_amount = QTableWidgetItem(str(purchase["total"]))
-            item_amount.setData(Qt.UserRole, purchase["total"])
+            item_amount.setData(Qt.ItemDataRole.UserRole, purchase["total"])
             self.table.setItem(row, 3, item_amount)
 
             # Detail buttons
