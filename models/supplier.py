@@ -36,3 +36,15 @@ class Supplier:
     def delete(supplier_id):
         with get_connection() as conn:
             conn.execute("DELETE FROM supplier WHERE id=?", (supplier_id,))
+
+    @staticmethod
+    def get_by_id(supplier_id):
+        if not supplier_id or supplier_id < 0:
+            return None
+        with get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM supplier WHERE id=?", (supplier_id,))
+            fila = cur.fetchone()
+            if fila:
+                return Supplier(*fila[1:], id=fila[0])
+            return None

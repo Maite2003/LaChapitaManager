@@ -1,4 +1,4 @@
-UNITS = ["kg", "g", "l", "ml", "unidad", "lata", "botella", "caja"]
+UNITS = ["kg", "g", "bolsa", "l", "ml", "unidad", "lata", "botella", "caja"]
 
 def get_all():
     """

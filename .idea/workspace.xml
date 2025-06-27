@@ -5,37 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="47376847-251e-4326-8cfe-6e6c240627de" name="Changes" comment="ui design, not finished">
-      <change afterPath="$PROJECT_DIR$/core/agenda_services.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/product_services.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/core/transactions_services.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/desktop/.env" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/desktop/ui/purchase_dialog.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/desktop/ui/supplier_dialog.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/desktop/ui/transaction_dialog_layout.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/lachapita.db" beforeDir="false" afterPath="$PROJECT_DIR$/data/lachapita.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/db/schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/script.sql" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/category.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/category.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/product.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/product.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/product_variant.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/product_variant.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/purchase.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/purchase.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/reports.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/sale.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/sale.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/stock.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/stock.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/categories_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/categories_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/client_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/client_dialog.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/clients_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/clients_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/inventory_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/inventory_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/main_window.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/product_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/product_dialog.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/purchases_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/purchases_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/sale_detail_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/sale_detail_dialog.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/sale_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/sale_dialog.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/sales_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/sales_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/suppliers_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/suppliers_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/variant_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/variant_dialog.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core/agenda_services.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/agenda_services.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/desktop/ui/client_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/client_dialog.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/desktop/ui/product_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/product_dialog.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/desktop/ui/purchase_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/purchase_dialog.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/desktop/ui/sale_detail_dialog.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/desktop/ui/sale_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/sale_dialog.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/desktop/ui/sales_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/sales_page.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/desktop/ui/supplier_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/supplier_dialog.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/desktop/ui/suppliers_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/suppliers_page.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/supplier.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/supplier.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/units.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/units.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,7 +139,7 @@
       <workItem from="1750782239047" duration="8246000" />
       <workItem from="1750948455752" duration="25753000" />
       <workItem from="1751038971904" duration="699000" />
-      <workItem from="1751041159613" duration="301000" />
+      <workItem from="1751041159613" duration="5067000" />
     </task>
     <task id="LOCAL-00001" summary="basic logic">
       <option name="closed" value="true" />
@@ -212,7 +194,7 @@
     <SUITE FILE_PATH="coverage/LaChapitaManager$main_window.coverage" NAME="main_window Coverage Results" MODIFIED="1750033071483" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ui" />
     <SUITE FILE_PATH="coverage/LaChapitaManager$inventory_page.coverage" NAME="inventory_page Coverage Results" MODIFIED="1750107990750" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ui" />
     <SUITE FILE_PATH="coverage/LaChapitaManager$db.coverage" NAME="db Coverage Results" MODIFIED="1750032773122" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/db" />
-    <SUITE FILE_PATH="coverage/LaChapitaManager$main.coverage" NAME="main Coverage Results" MODIFIED="1751038980935" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/LaChapitaManager$main.coverage" NAME="main Coverage Results" MODIFIED="1751047363721" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/LaChapitaManager$run.coverage" NAME="run Coverage Results" MODIFIED="1750017078702" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

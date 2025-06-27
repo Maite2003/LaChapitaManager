@@ -67,3 +67,9 @@ class AgendaService:
     def delete_supplier(supplier_id):
         Supplier.delete(supplier_id)
 
+    @staticmethod
+    def get_supplier_by_id(id):
+        if not id or id < 0:
+            return None
+        return Supplier.get_by_id(id)
+

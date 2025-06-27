@@ -6,6 +6,8 @@ from core.agenda_services import AgendaService
 from desktop.ui.client_dialog import ClientDialog
 from PySide6.QtCore import Qt
 
+from desktop.ui.supplier_dialog import SupplierDialog
+
 
 class SuppliersPage(QWidget):
     def __init__(self):
@@ -136,7 +138,7 @@ class SuppliersPage(QWidget):
 
     def open_supplier(self, supplier=None):
         dialog = SupplierDialog(self, supplier)
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec_() == QDialog.DialogCode.Accepted:
             data = dialog.get_data()
 
             # Validate data
@@ -149,9 +151,9 @@ class SuppliersPage(QWidget):
 
             if supplier:
                 # Edit supplier
-                AgendaService.update_client(supplier['id'], data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
+                AgendaService.update_supplier(supplier['id'], data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
             else:
                 # New supplier
-                AgendaService.add_client(data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
+                AgendaService.add_supplier(data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
             self.load_suppliers()
 

@@ -29,7 +29,7 @@ class SupplierDialog(QDialog):
         layout.addWidget(QLabel("Email:"))
         layout.addWidget(self.mail_input)
 
-        # Botones aceptar/cancelar
+        # Accept and Cancel buttons
         btn_layout = QHBoxLayout()
         btn_ok = QPushButton("Aceptar")
         btn_cancel = QPushButton("Cancelar")

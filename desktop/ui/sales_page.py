@@ -171,7 +171,7 @@ class SalesPage(QWidget):
             # Date column
             item_fecha = QTableWidgetItem(sale["date"])
             fecha_qdate = QDate.fromString(sale["date"], "dd-MM-yyyy")
-            item_fecha.setData(Qt.UserRole, fecha_qdate)
+            item_fecha.setData(Qt.ItemDataRole.UserRole, fecha_qdate)
             self.table.setItem(row, 1, item_fecha)
 
             if client:
@@ -181,7 +181,6 @@ class SalesPage(QWidget):
 
             # Amount column
             item_amount = QTableWidgetItem(str(sale["total"]))
-            item_amount.setData(Qt.UserRole, sale["total"])
             self.table.setItem(row, 3, item_amount)
 
             # Detail buttons

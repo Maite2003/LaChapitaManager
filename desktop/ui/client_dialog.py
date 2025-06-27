@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QVBoxLayout, QLineEdit, QDialog, QLabel, QHBoxLayout, QPushButton, QMessageBox
+from PySide6.QtWidgets import QVBoxLayout, QLineEdit, QDialog, QLabel, QHBoxLayout, QPushButton
 
 class ClientDialog(QDialog):
     def __init__(self, parent=None, client=None):
@@ -28,7 +28,7 @@ class ClientDialog(QDialog):
         layout.addWidget(QLabel("Email:"))
         layout.addWidget(self.mail_input)
 
-        # Botones aceptar/cancelar
+        # Accept/Cancel buttons
         btn_layout = QHBoxLayout()
         btn_ok = QPushButton("Aceptar")
         btn_cancel = QPushButton("Cancelar")

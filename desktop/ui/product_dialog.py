@@ -72,9 +72,9 @@ class AddProductDialog(QDialog):
         layout.addWidget(QLabel("Variantes del producto:"))
         self.variant_table = QTableWidget(0, 4)
         self.variant_table.setHorizontalHeaderLabels(["Variante", "Stock", "Stock minimo", "Precio"])
-        self.variant_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.variant_table.setSelectionMode(QTableWidget.MultiSelection)
-        self.variant_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.variant_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.variant_table.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
+        self.variant_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.variant_table.itemSelectionChanged.connect(lambda: self.update_buttons())
         layout.addWidget(self.variant_table)
 
@@ -156,7 +156,7 @@ class AddProductDialog(QDialog):
 
     def add_variant(self):
         dialog = VariantDialog(self)
-        if dialog.exec() == QDialog.Accepted:
+        if dialog.exec() == QDialog.DialogCode.Accepted:
             data = dialog.get_data()
             if not data['variant_name']:
                 QMessageBox.warning(self, "Error", "La variante debe tener nombre.")
@@ -212,9 +212,7 @@ class AddProductDialog(QDialog):
             # En lugar de poner un precio numérico editable, mostramos un label con el rango
             if not hasattr(self, 'price_range_label'):
                 self.price_range_label = QLabel()
-                # Insertamos el label justo debajo del price_input
-                idx = self.layout().indexOf(self.price_input)
-                self.layout().insertWidget(idx + 1, self.price_range_label)
+                self.layout().addWidget(self.price_range_label)
             self.price_range_label.setText(f"Rango de precio: ${min_price:.2f} - ${max_price:.2f}")
             self.price_range_label.show()
 
