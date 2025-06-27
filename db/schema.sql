@@ -1,15 +1,3 @@
-DROP TABLE IF EXISTS sale_detail;
-DROP TABLE IF EXISTS sale;
-DROP TABLE IF EXISTS purchase_detail;
-DROP TABLE IF EXISTS purchase;
-DROP TABLE IF EXISTS product_variant;
-DROP TABLE IF EXISTS product;
-DROP TABLE IF EXISTS category;
-DROP TABLE IF EXISTS client;
-DROP TABLE IF EXISTS supplier;
-DROP TABLE IF EXISTS transaction_stock;
-
-
 CREATE TABLE IF NOT EXISTS category (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE
@@ -20,9 +8,10 @@ CREATE TABLE IF NOT EXISTS product (
     name TEXT NOT NULL,
     category_id INTEGER NOT NULL,
     unit TEXT NOT NULL,
-    price REAL NOT NULL,
-    stock REAL NOT NULL,
-    stock_low REAL NOT NULL,
+    price REAL,
+    stock INTEGER,
+    stock_low INTEGER,
+    active INTEGER NOT NULL DEFAULT 1,
     FOREIGN KEY (category_id) REFERENCES category(id) ON DELETE CASCADE
 );
 
@@ -60,7 +49,7 @@ CREATE TABLE IF NOT EXISTS sale (
     date TEXT NOT NULL,
     client_id INTEGER,
     total REAL NOT NULL,
-    FOREIGN KEY (client_id) REFERENCES client(id)
+    FOREIGN KEY (client_id) REFERENCES client(id) ON DELETE CASCADE
 );
 
 /* Hay muchos detalles_venta por venta, ya que hay uno por producto de la venta */
@@ -69,11 +58,11 @@ CREATE TABLE IF NOT EXISTS sale_detail (
     sale_id INTEGER NOT NULL,
     product_id INTEGER,
     variant_id INTEGER,
-    quantity REAL NOT NULL,
+    quantity INTEGER NOT NULL,
     unit_price REAL NOT NULL,
-    FOREIGN KEY (sale_id) REFERENCES sale(id),
-    FOREIGN KEY (product_id) REFERENCES product(id),
-    FOREIGN KEY (variant_id) REFERENCES product_variant(id)
+    FOREIGN KEY (sale_id) REFERENCES sale(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE,
+    FOREIGN KEY (variant_id) REFERENCES product_variant(id) ON DELETE CASCADE
 );
 
 /* Tabla con datos grales de la compra de insumos a proovedores */
@@ -82,7 +71,7 @@ CREATE TABLE IF NOT EXISTS purchase (
     date TEXT NOT NULL,
     supplier_id INTEGER,
     total REAL NOT NULL,
-    FOREIGN KEY (supplier_id) REFERENCES supplier(id)
+    FOREIGN KEY (supplier_id) REFERENCES supplier(id) ON DELETE CASCADE
 );
 
 /* Hay muchos detalles_compra por compra, ya que hay uno por producto de la compra */
@@ -91,11 +80,11 @@ CREATE TABLE IF NOT EXISTS purchase_detail (
     purchase_id INTEGER NOT NULL,
     product_id INTEGER,
     variant_id INTEGER,
-    quantity REAL NOT NULL,
+    quantity INTEGER NOT NULL,
     unit_price REAL NOT NULL,
-    FOREIGN KEY (purchase_id) REFERENCES purchase(id),
-    FOREIGN KEY (product_id) REFERENCES product(id),
-    FOREIGN KEY (variant_id) REFERENCES product_variant(id)
+    FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE,
+    FOREIGN KEY (variant_id) REFERENCES product_variant(id) ON DELETE CASCADE
 );
 
 /* Esta tabla guarda cada movimiento que afecta al stock de un producto. Incluye fecha, tipo, cantidad y una descripción opcional. */
@@ -109,37 +98,8 @@ CREATE TABLE IF NOT EXISTS transaction_stock (
     obs TEXT,
     sale_id INTEGER,
     purchase_id INTEGER,
-    FOREIGN KEY (product_id) REFERENCES product(id),
-    FOREIGN KEY (variant_id) REFERENCES product_variant(id),
-    FOREIGN KEY (sale_id) REFERENCES sale(id),
-    FOREIGN KEY (purchase_id) REFERENCES purchase(id)
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE,
+    FOREIGN KEY (variant_id) REFERENCES product_variant(id) ON DELETE CASCADE,
+    FOREIGN KEY (sale_id) REFERENCES sale(id) ON DELETE CASCADE,
+    FOREIGN KEY (purchase_id) REFERENCES purchase(id) ON DELETE CASCADE
 );
-
-/* VISTAS */
-
-/* Vista general movimientos */
-DROP VIEW IF EXISTS view_transactions_stock;
-CREATE VIEW IF NOT EXISTS view_transactions_stock AS
-SELECT
-    ms.id AS mov_id,
-    ms.date,
-    ms.type,
-    ms.quantity,
-    ms.obs,
-    p.name AS product,
-    v.variant_name AS variant,
-    ms.sale_id,
-    ms.purchase_id,
-
-    CASE
-        WHEN ms.sale_id IS NOT NULL THEN 'out'
-        WHEN ms.purchase_id IS NOT NULL THEN 'in'
-        ELSE 'manual'
-    END AS origin,
-
-    COALESCE(ms.sale_id, ms.purchase_id, NULL) AS op_id
-
-FROM transaction_stock ms
-JOIN product p ON ms.product_id = p.id
-LEFT JOIN product_variant v ON ms.variant_id = v.id
-ORDER BY ms.date DESC;

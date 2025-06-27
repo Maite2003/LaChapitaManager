@@ -3,61 +3,15 @@ from datetime import datetime
 
 from models.product import Product
 from models.product_variant import ProductVariant
-import models.category as Category
-
 
 def save_transaction(product_id, quantity, type, obs='', variant_id=None,date = datetime.now().isoformat(timespec="seconds"), sale_id=None, purchase_id=None, conn=None):
     if type not in ["in", "out"]:
         raise ValueError("Tipo de movimiento debe ser 'in' o 'out'")
 
-    if variant_id:
-        # Mover stock de la variante
-        if variant_id:
-            variants = ProductVariant.get_by_product_id(product_id)
-            variant = next((v for v in variants if v['id'] == variant_id), None)
-            if not variant:
-                raise ValueError(f"Variante con ID = {variant_id} no encontrada")
-        else: variant = None
-
-        if type == "in":
-            variant['stock'] += quantity
-            if not purchase_id:
-                raise ValueError("Debe proporcionar un ID de compra para registrar una entrada")
-            if sale_id is not None:
-                sale_id = None
-        else:
-            if variant['stock'] < quantity:
-                raise ValueError("Stock insuficiente en la variante")
-            variant['stock'] -= quantity
-            if not sale_id:
-                raise ValueError("Debe proporcionar un ID de venta para registrar una salida")
-            if purchase_id is not None:
-                purchase_id = None
-        ProductVariant.update(variant_id=variant["id"], variant_name=variant["variant_name"], stock=variant["stock"], price=variant["price"], stock_low=variant["stock_low"], conn=conn)
-        Product.update_product(product_id=product_id, name=variant["name"], unit=variant["unit"], category_id=Category.get_id_by_name(variant["category"]), price=variant["price"], stock=variant["stock"], stock_low=variant["stock_low"], variants=None, conn=conn)
+    if type == "in":
+        Product.edit_stock(product_id=product_id, variant_id=variant_id, quantity=quantity, type="in", conn=conn)
     else:
-
-        # Actualizar stock del product
-        products = Product.get_all()
-        product = next((p for p in products if p.get("id") == product_id), None)
-        if not product:
-            raise ValueError(f"Producto con ID = {product_id} no encontrado")
-        if type == "in":
-            product["stock"] += quantity
-            if purchase_id is None:
-                raise ValueError("Debe proporcionar un ID de compra para registrar una entrada")
-            if sale_id is not None:
-                sale_id = None  # No se debe registrar una venta al hacer una entrada
-        else:
-            if product["stock"] < quantity:
-                raise ValueError("Stock insuficiente para realizar el egreso")
-            product["stock"] -= quantity
-            if sale_id is None:
-                raise ValueError("Debe proporcionar un ID de venta para registrar una salida")
-            if purchase_id is not None:
-                purchase_id = None
-
-        Product.update_product(product_id=product["id"], name=product["name"], unit=product["unit"], category_id=Category.get_id_by_name(product["category"]), price=product["price"], stock=product["stock"], stock_low=product["stock_low"], variants=None, conn=conn)
+        Product.edit_stock(product_id=product_id, variant_id=variant_id, quantity=quantity, type="out", conn=conn)
 
     # registrar movimiento en la base de datos de movimientos
     if conn is None:
@@ -71,14 +25,47 @@ def save_transaction(product_id, quantity, type, obs='', variant_id=None,date = 
         """, (product_id, variant_id, date, type, quantity, obs, sale_id, purchase_id))
 
 
-def get_transactions():
-    with get_connection() as conn:
+def update_transaction(product_id, variant_id, new_q, type, sale_id=None, purchase_id=None, conn=None):
+    with conn:
         cursor = conn.cursor()
-        cursor.execute("""
-                    SELECT ms.id, p.name, ms.date, ms.type, ms.quantity, ms.obs, ms.sale_id, ms.purchase_id
-                    FROM transaction_stock ms
-                    JOIN product p ON ms.product_id = p.id
-                    ORDER BY ms.date DESC
-                """)
-        return cursor.fetchall()
+        cursor.execute("SELECT quantity FROM transaction_stock "
+                       "WHERE product_id = ? "
+                       "AND (variant_id = ? OR variant_id IS NULL)"
+                       "AND (sale_id = ? OR sale_id IS NULL) "
+                       "AND (purchase_id = ? OR purchase_id IS NULL) "
+                       "AND type = ?", (product_id, variant_id, sale_id, purchase_id, type))
+        old_amount = cursor.fetchone()
 
+        cursor.execute("UPDATE transaction_stock SET quantity = ? "
+                       "WHERE product_id = ? "
+                       "AND (variant_id = ? OR variant_id IS NULL) "
+                       "AND (sale_id = ? OR sale_id IS NULL)"
+                       "AND (purchase_id = ? OR purchase_id IS NULL)"
+                       "AND type = ?", (new_q, product_id, variant_id, sale_id, purchase_id, type))
+
+        if sale_id:
+            if old_amount[0] > new_q: # Somebody returned
+                Product.edit_stock(product_id=product_id, variant_id=variant_id, quantity=old_amount[0] - new_q, type="int", conn=conn)
+            else: # Sold more
+                Product.edit_stock(product_id=product_id, variant_id=variant_id, quantity=new_q - old_amount[0], type="out", conn=conn)
+        elif purchase_id:
+            if old_amount[0] > new_q: # I returned some, I got less
+                Product.edit_stock(product_id=product_id, variant_id=variant_id, quantity=old_amount[0] - new_q, type="out", conn=conn)
+            else: # I bought more of the same
+                Product.edit_stock(product_id=product_id, variant_id=variant_id, quantity=new_q - old_amount[0], type="in", conn=conn)
+
+
+def delete_transaction(product_id, variant_id, quantity, type, sale_id=None, purchase_id=None, conn=None):
+    with conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM transaction_stock WHERE product_id = ? AND variant_id = ? AND sale_id = ? AND type = ?", (product_id, variant_id, sale_id, type))
+        transaction = cursor.fetchone()
+
+        if not transaction:
+            raise ValueError("Transacción no encontrada")
+
+        if type == "in": # Deleted a purchase, stock decreases
+            Product.edit_stock(product_id=product_id, variant_id=variant_id, quantity=quantity, type="out", conn=conn)
+        else: # Deleted a sale, stock increases
+            Product.edit_stock(product_id=product_id, variant_id=variant_id, quantity=quantity, type="in", conn=conn)
+        cursor.execute("DELETE FROM transaction_stock WHERE product_id = ? AND variant_id = ? AND sale_id = ? AND purchase_id = ?", (product_id, variant_id, sale_id, purchase_id))

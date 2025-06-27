@@ -25,19 +25,10 @@ class Client:
                 self.id = cur.lastrowid
 
     @staticmethod
-    def update(client_id, name, surname, phone, mail):
-        with get_connection() as conn:
-            conn.execute("""
-                UPDATE client
-                SET name=?, surname=?, phone=?, mail=?
-                WHERE id=?
-            """, (name, surname, phone, mail, client_id))
-
-    @staticmethod
     def get_all():
         with get_connection() as conn:
             cur = conn.cursor()
-            cur.execute("SELECT * FROM client")
+            cur.execute("SELECT * FROM client ORDER BY name, surname")
             filas = cur.fetchall()
             return [{"name": fila["name"], "surname": fila["surname"], "phone": fila["phone"], "mail": fila["mail"], "id": fila["id"]} for fila in filas]
 
@@ -45,3 +36,13 @@ class Client:
     def delete(client_id):
         with get_connection() as conn:
             conn.execute("DELETE FROM client WHERE id=?", (client_id,))
+
+    @staticmethod
+    def get_by_id(client_id):
+        with get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM client WHERE id=?", (client_id,))
+            fila = cur.fetchone()
+            if fila:
+                return Client(name=fila["name"], surname=fila["surname"], phone=fila["phone"], mail=fila["mail"], id=fila["id"])
+            return None
