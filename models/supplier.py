@@ -19,7 +19,7 @@ class Supplier:
                 """, (self.name, self.surname, self.phone, self.mail, self.id))
             else:
                 cur.execute("""
-                    INSERT INTO supplier (name, supplier, phone, mail)
+                    INSERT INTO supplier (name, surname, phone, mail)
                     VALUES (?, ?, ?, ?)
                 """, (self.name, self.surname, self.phone, self.mail))
                 self.id = cur.lastrowid
@@ -39,12 +39,10 @@ class Supplier:
 
     @staticmethod
     def get_by_id(supplier_id):
-        if not supplier_id or supplier_id < 0:
-            return None
         with get_connection() as conn:
             cur = conn.cursor()
             cur.execute("SELECT * FROM supplier WHERE id=?", (supplier_id,))
             fila = cur.fetchone()
             if fila:
-                return Supplier(*fila[1:], id=fila[0])
+                return {'id': fila[0], 'name': fila[1], 'surname': fila[2], 'phone': fila[3], 'mail': fila[4]}
             return None

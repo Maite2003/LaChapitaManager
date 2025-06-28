@@ -44,5 +44,5 @@ class Client:
             cur.execute("SELECT * FROM client WHERE id=?", (client_id,))
             fila = cur.fetchone()
             if fila:
-                return Client(name=fila["name"], surname=fila["surname"], phone=fila["phone"], mail=fila["mail"], id=fila["id"])
+                return {"name": fila["name"], "surname": fila["surname"], "phone": fila["phone"], "mail": fila["mail"], "id": fila["id"]}
             return None

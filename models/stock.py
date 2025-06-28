@@ -2,9 +2,8 @@ from db.db import get_connection
 from datetime import datetime
 
 from models.product import Product
-from models.product_variant import ProductVariant
 
-def save_transaction(product_id, quantity, type, obs='', variant_id=None,date = datetime.now().isoformat(timespec="seconds"), sale_id=None, purchase_id=None, conn=None):
+def save_transaction(product_id, quantity, type, obs='', variant_id=None,date = datetime.now().strftime('%d-%m-%Y'), sale_id=None, purchase_id=None, conn=None):
     if type not in ["in", "out"]:
         raise ValueError("Tipo de movimiento debe ser 'in' o 'out'")
 
@@ -22,7 +21,7 @@ def save_transaction(product_id, quantity, type, obs='', variant_id=None,date = 
         cursor.execute("""
             INSERT INTO transaction_stock (product_id, variant_id, date, type, quantity, obs, sale_id, purchase_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (product_id, variant_id, date, type, quantity, obs, sale_id, purchase_id))
+        """, (product_id, variant_id, datetime.strptime(date, "%d-%m-%Y").strftime("%Y-%m-%d"), type, quantity, obs, sale_id, purchase_id))
 
 
 def update_transaction(product_id, variant_id, new_q, type, sale_id=None, purchase_id=None, conn=None):
@@ -69,3 +68,34 @@ def delete_transaction(product_id, variant_id, quantity, type, sale_id=None, pur
         else: # Deleted a sale, stock increases
             Product.edit_stock(product_id=product_id, variant_id=variant_id, quantity=quantity, type="in", conn=conn)
         cursor.execute("DELETE FROM transaction_stock WHERE product_id = ? AND variant_id = ? AND sale_id = ? AND purchase_id = ?", (product_id, variant_id, sale_id, purchase_id))
+
+def get_all(start_date, end_date, type='all'):
+    if type not in ['all', 'in', 'out']:
+        raise ValueError("Tipo debe ser 'all', 'in' o 'out'")
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        if start_date is None or end_date is None:
+            if type == 'all':
+                cursor.excecute("SELECT * FROM transaction_stock")
+            else:
+                cursor.execute("SELECT * FROM transaction_stock WHERE type = ?", (type,))
+        else:
+            if type == 'all':
+                cursor.excecute("SELECT * FROM transaction_stock WHERE date BETWEEN ? AND ?", (start_date, end_date))
+            else:
+                cursor.execute("SELECT * FROM transaction_stock WHERE type = ? AND date BETWEEN ? AND ?", (type, start_date, end_date))
+
+        transactions = cursor.fetchall()
+        transactions = [{
+            'id': row[0],
+            'product_id': row[1],
+            'variant_id': row[2],
+            'date': datetime.strptime(row[3], "%Y-%m-%d").strftime("%d-%m-%Y"),
+            'type': row[4],
+            'quantity': row[5],
+            'obs': row[6],
+            'sale_id': row[7],
+            'purchase_id': row[8]
+        } for row in transactions]

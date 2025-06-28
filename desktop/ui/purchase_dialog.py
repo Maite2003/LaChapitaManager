@@ -12,10 +12,11 @@ class PurchaseDialog(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Agregar venta")
-        self.setMinimumSize(600, 400)
+        self.setMinimumSize(700, 400)
 
         self.layout = TransactionDialogLayout(self)
         self.setLayout(self.layout)
+        self.layout.person_label.setText("Proveedor")
 
         self.table = self.layout.get_table()
 
@@ -26,6 +27,7 @@ class PurchaseDialog(QDialog):
 
 
     def load_suppliers(self):
+        self.layout.person_combo.clear()
         self.layout.add_person_combo("Sin proveedor", None)
         for supplier in AgendaService.get_all_suppliers():
             name = f"{supplier['name']} {supplier['surname']}"
@@ -43,7 +45,7 @@ class PurchaseDialog(QDialog):
                 else:
                     variant_combo.setCurrentIndex(0)
 
-            product = ProductService.get_product_by_id(product_id)
+            product = ProductService.get_product_by_id(int(self.table.cellWidget(row, 0).currentData()))
             unit_label.setText(product['unit'])
 
             if not variant_id and product['variants'] != []:
@@ -67,7 +69,7 @@ class PurchaseDialog(QDialog):
         for item in possibilities:
             product_combo.addItem(item["name"], item["id"])
         self.table.setCellWidget(row, 0, product_combo)
-        product_combo.currentIndexChanged.connect(lambda: on_product_selected())
+        product_combo.currentIndexChanged.connect(on_product_selected)
         product_combo.setCurrentIndex(0)  # Set the first product as selected
 
         # Variant
@@ -89,7 +91,7 @@ class PurchaseDialog(QDialog):
 
         # Unit price
         price_spin = QDoubleSpinBox()
-        price_spin.setMinimum(1)
+        price_spin.setMinimum(0)
         price_spin.setMaximum(999999)  # Set a reasonable maximum
         price_spin.setValue(1)
         self.table.setCellWidget(row, 4, price_spin)

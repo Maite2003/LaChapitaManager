@@ -4,7 +4,7 @@ from db.db import get_connection
 from datetime import datetime
 
 class Purchase:
-    def __init__(self, items, supplier_id, date=datetime.now().strftime('%d-%m-%Y'), id=None):
+    def __init__(self, items, supplier_id, date=datetime.now().strftime('%Y-%m-%d'), id=None):
         self.id = id
         self.date = date
         """
@@ -91,27 +91,35 @@ class Purchase:
 
         return {
             "id": general_info[0],
-            "date": general_info[1],
+            "date": datetime.strptime(general_info[1], "%Y-%m-%d").strftime("%d-%m-%Y"),
             "supplier_id": general_info[2] if general_info[2] else None,
             "total": general_info[3],
             "items": items  # List of (product_id, variant_id, quantity, unit_price)
         }
 
     @staticmethod
-    def get_all():
+    def get_all(start_date, end_date):
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
-                SELECT purchase.id, purchase.date, purchase.supplier_id, purchase.total
-                FROM purchase
-                ORDER BY purchase.date DESC
-            """)
+            if start_date is None or end_date is None:
+                cursor.execute("""
+                    SELECT purchase.id, purchase.date, purchase.supplier_id, purchase.total
+                    FROM purchase
+                    ORDER BY purchase.date DESC
+                """)
+            else:
+                cursor.execute("""
+                    SELECT purchase.id, purchase.date, purchase.supplier_id, purchase.total
+                    FROM purchase
+                    WHERE purchase.date BETWEEN ? AND ?
+                    ORDER BY purchase.date DESC
+                """, (start_date, end_date))
             purchases = cursor.fetchall()
         items = []
         for row in purchases:
             purchase = {
             "id": row[0],
-            "date": row[1],
+            "date": datetime.strptime(row[1], "%Y-%m-%d").strftime("%d-%m-%Y"),
             "supplier_id": row[2] if row[2] else None,
             "total": row[3],
             }
@@ -146,3 +154,18 @@ class Purchase:
 
             # Detele purchase. The details and transaction erases automatically due to cascading
             cursor.execute("DELETE FROM purchase WHERE id = ?", (purchase_id,))
+
+    @staticmethod
+    def get_total(start_date, end_date):
+        """
+        Get the total purchase amount within a specified date range.
+        If no dates are provided, it returns the total purchase amount without filtering.
+        """
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT SUM(total) FROM purchase
+                WHERE date BETWEEN ? AND ?
+            """, (start_date, end_date))
+            total = cursor.fetchone()[0]
+            return total if total else 0

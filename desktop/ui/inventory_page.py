@@ -2,9 +2,9 @@ from functools import partial
 
 from PySide6.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QCheckBox, QTableWidget, QTableWidgetItem,
-    QPushButton, QHeaderView, QMessageBox
+    QPushButton, QHeaderView, QMessageBox, QToolButton
 )
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from core.product_services import ProductService
 from desktop.ui.product_dialog import AddProductDialog
 
@@ -89,6 +89,7 @@ class InventoryPage(QWidget):
 
     def reset_filters(self):
         categories = ProductService.get_all_categories()
+        self.category_filter.clear()
         self.category_filter.addItem("Todas las categorías", None)
         for cat in categories:
             self.category_filter.addItem(cat["name"], cat["id"])
@@ -114,8 +115,21 @@ class InventoryPage(QWidget):
             for row in selected:
                 product_id = self.table.item(row.row(), 0).text()
                 ProductService.delete_product(int(product_id))
+            self.refresh()
 
     def load_filtered_products(self):
+        def is_variant_low(variants):
+            for v in variants:
+                if v["stock"] <= v["stock_low"]:
+                    return True
+            return False
+
+        def is_variant_no_stock(variants):
+            for v in variants:
+                if v["stock"] == 0:
+                    return True
+            return False
+
         def get_filtered_products():
             text = self.search_bar.text().lower()
             category = self.category_filter.currentText()
@@ -130,10 +144,16 @@ class InventoryPage(QWidget):
                     continue
                 if category != "Todas las categorías" and p["category"] != category:
                     continue
-                if low_stock and p["stock"] < p["stock_low"]:
-                    continue
-                if no_stock and p["stock"] == 0:
-                    continue
+                if len(p['variants']) == 0:
+                    if low_stock and p["stock"] > p["stock_low"]:
+                        continue
+                    if no_stock and p["stock"] != 0:
+                        continue
+                else:
+                    if low_stock and not is_variant_low(p["variants"]):
+                        continue
+                    if no_stock and not is_variant_no_stock(p["variants"]):
+                        continue
                 filtered.append(p)
             return sorted(filtered, key=lambda x: x["name"].lower())
 
@@ -166,9 +186,9 @@ class InventoryPage(QWidget):
                     stock_item.setForeground(Qt.GlobalColor.green)
             self.table.setItem(row, 4, stock_item)
             # Edit button
-            details_btn = QPushButton("Editar")
+            details_btn = QToolButton()
+            details_btn.setText("Detalles")
             details_btn.clicked.connect(partial(self.open_product_dialog, product))
-            details_btn.setStyleSheet("padding: 4px;")
             self.table.setCellWidget(row, 5, details_btn)
 
     def refresh(self):
@@ -198,6 +218,4 @@ class InventoryPage(QWidget):
             except Exception as e:
                 return QMessageBox.critical(self, "Error", f"No se pudo guardar el producto:\n{str(e)}")
             self.refresh()
-
-
 

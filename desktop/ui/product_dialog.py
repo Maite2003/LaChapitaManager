@@ -1,6 +1,7 @@
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QDialog, QDoubleSpinBox, QPushButton, QMessageBox,
-    QTableWidget, QTableWidgetItem, QSpinBox
+    QTableWidget, QTableWidgetItem, QSpinBox, QHeaderView
 )
 
 from core.product_services import ProductService
@@ -21,7 +22,7 @@ class AddProductDialog(QDialog):
 
     def setup_ui(self):
         self.setWindowTitle("Agregar producto")
-        self.setMinimumWidth(400)
+        self.setMinimumWidth(500)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -76,6 +77,9 @@ class AddProductDialog(QDialog):
         self.variant_table.setSelectionMode(QTableWidget.SelectionMode.MultiSelection)
         self.variant_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.variant_table.itemSelectionChanged.connect(lambda: self.update_buttons())
+        header = self.variant_table.horizontalHeader()
+        for i in range(5):
+            header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.variant_table)
 
         variant_btn_layout = QHBoxLayout()
@@ -133,6 +137,7 @@ class AddProductDialog(QDialog):
 
         self.refresh_variant_table()
 
+
     def get_data(self):
         name = self.name_input.text().strip()
         unit = self.unit_input.currentText().strip()
@@ -187,10 +192,21 @@ class AddProductDialog(QDialog):
         self.refresh_variant_table()
 
     def refresh_variant_table(self):
+        self.variant_table.clearSelection()
         self.variant_table.setRowCount(len(self.variants))
         for i, v in enumerate(self.variants):
             self.variant_table.setItem(i, 0, QTableWidgetItem(v['variant_name']))
-            self.variant_table.setItem(i, 1, QTableWidgetItem(str(v['stock'])))
+            stock_item = QTableWidgetItem(str(v['stock']))
+            # Stock in red if 0
+            if v["stock"] == 0:
+                stock_item.setForeground(Qt.GlobalColor.red)
+            # Stock in yellow if below the low stock threshold
+            elif v["stock"] <= v["stock_low"]:
+                stock_item.setForeground(Qt.GlobalColor.darkYellow)
+            else:
+                # Else green
+                stock_item.setForeground(Qt.GlobalColor.green)
+            self.variant_table.setItem(i, 1, stock_item)
             self.variant_table.setItem(i, 2, QTableWidgetItem(str(v['stock_low'])))
             self.variant_table.setItem(i, 3, QTableWidgetItem(f"{v['price']:.2f}"))
 
@@ -211,8 +227,13 @@ class AddProductDialog(QDialog):
 
             # En lugar de poner un precio numérico editable, mostramos un label con el rango
             if not hasattr(self, 'price_range_label'):
+                layout = self.layout()
                 self.price_range_label = QLabel()
-                self.layout().addWidget(self.price_range_label)
+                if isinstance(layout, QVBoxLayout):  # Check the layout type
+                    index = layout.indexOf(self.price_input)
+                    layout.insertWidget(index + 1, self.price_range_label)
+                else:
+                    raise TypeError("Expected QVBoxLayout, but got a different layout type.")
             self.price_range_label.setText(f"Rango de precio: ${min_price:.2f} - ${max_price:.2f}")
             self.price_range_label.show()
 

@@ -1,3 +1,5 @@
+from itertools import product
+
 from PySide6.QtCore import QDate
 from PySide6.QtWidgets import (
     QDialog, QLabel, QMessageBox,
@@ -13,17 +15,12 @@ class AddSaleDialog(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Agregar compra")
-        self.setMinimumSize(600, 400)
+        self.setMinimumSize(700, 400)
 
-        self.layout = TransactionDialogLayout()
+        self.layout = TransactionDialogLayout(self)
         self.setLayout(self.layout)
-
+        self.layout.person_label.setText("Cliente")
         self.table = self.layout.get_table()
-
-        # Connect signals specific to this dialog
-        self.layout.add_row_btn.clicked.connect(self.add_product_row)
-        self.layout.save_btn.clicked.connect(self.accept)
-        self.layout.cancel_btn.clicked.connect(self.reject)
 
         self.load_clients()
         self.sale = sale
@@ -34,6 +31,7 @@ class AddSaleDialog(QDialog):
             self.load_sale()
 
     def load_clients(self):
+        self.layout.person_combo.clear()
         self.layout.add_person_combo("Sin cliente", None)
         for client in AgendaService.get_all_clients():
             name = f"{client['name']} {client['surname']}"
@@ -108,7 +106,7 @@ class AddSaleDialog(QDialog):
                     options[product["id"]] = product["name"]
 
             # Add the products of the sale so they can be on the combo box
-            if self.sale['items']:
+            if self.sale:
                 for k, value in self.sale['items'].items():
                     if k[0] not in options:
                         options[k[0]] = ProductService.get_product_by_id(k[0])["name"]
@@ -164,7 +162,7 @@ class AddSaleDialog(QDialog):
             on_variant_selected()
 
         def on_product_selected(price=None):
-            product = ProductService.get_product_by_id(product_id)
+            product = ProductService.get_product_by_id(int(self.table.cellWidget(row, 0).currentData()))
             unit_label.setText(product['unit'])
 
             if not product['variants']: # The product has no variants

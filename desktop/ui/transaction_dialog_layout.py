@@ -1,39 +1,45 @@
 from PySide6.QtCore import QDate
-from PySide6.QtWidgets import QComboBox, QVBoxLayout, QHBoxLayout, QLabel, QDateEdit, QTableWidget, QPushButton
+from PySide6.QtWidgets import QComboBox, QVBoxLayout, QHBoxLayout, QLabel, QDateEdit, QTableWidget, QPushButton, \
+    QHeaderView
 
 
 class TransactionDialogLayout(QVBoxLayout):
-    def __init__(self, parent=None):
+    def __init__(self, parent):
         super().__init__(parent)
+        self.parent=parent
         self.setup_ui()
 
 
     def setup_ui(self):
-        # Cliente
-        client_layout = QHBoxLayout()
-        client_layout.addWidget(QLabel("Cliente:"))
+        # Person (Client/Supplier) ComboBox
+        layout = QHBoxLayout()
+        self.person_label = QLabel()
+        layout.addWidget(self.person_label)
         self.person_combo = QComboBox()
-        client_layout.addWidget(self.person_combo)
-        self.addLayout(client_layout)
+        layout.addWidget(self.person_combo)
+        self.addLayout(layout)
 
-        # Fecha
-        date_label = QLabel("Fecha de venta:")
+        # date
+        date_label = QLabel("Fecha")
         self.date_edit = QDateEdit()
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setDate(QDate.currentDate())  # By default, today
         self.date_edit.setMaximumDate(QDate.currentDate())  # Don't allow future dates
 
-        # Insertarlo en el layout del formulario o layout principal
         self.addWidget(date_label)
         self.addWidget(self.date_edit)
 
-        # Tabla de productos
+        # Product's table
         self.table = QTableWidget()
         self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels(["Producto", "Variante", "Cantidad", "Unidad", "Precio unitario", "Total", " "])
         self.addWidget(self.table)
+        header = self.table.horizontalHeader()
+        for i in range(6):
+            header.setSectionResizeMode(i, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)  # Last column for buttons
 
-        # Botón para agregar fila
+        # New product row button
         self.add_row_btn = QPushButton("Agregar producto")
         self.addWidget(self.add_row_btn)
 
@@ -41,13 +47,18 @@ class TransactionDialogLayout(QVBoxLayout):
         self.total_label = QLabel("Total: $0")
         self.addWidget(self.total_label)
 
-        # Botones
+        # Buttons
         button_layout = QHBoxLayout()
         self.save_btn = QPushButton("Guardar")
         self.cancel_btn = QPushButton("Cancelar")
         button_layout.addWidget(self.save_btn)
         button_layout.addWidget(self.cancel_btn)
         self.addLayout(button_layout)
+
+        # Connect signals
+        self.add_row_btn.clicked.connect(self.parent.add_product_row)
+        self.save_btn.clicked.connect(self.parent.accept)
+        self.cancel_btn.clicked.connect(self.parent.reject)
 
 
     def get_person_combo(self):

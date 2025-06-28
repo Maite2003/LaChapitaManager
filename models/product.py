@@ -169,10 +169,10 @@ class Product():
 
                 # Calculates the stock of the product as the sum of the variant's stock
                 cursor.execute("SELECT stock FROM product_variant WHERE product_id=?", (product_id,))
-                q = cursor.fetchone()
+                q = cursor.fetchall()
                 new_stock = 0
                 for row in q:
-                    new_stock += row
+                    new_stock += row[0]
             else:
                 cursor.execute("SELECT stock FROM product WHERE id=?", (product_id,))
                 stock = cursor.fetchone()[0]
@@ -201,3 +201,45 @@ class Product():
                     if not stock or stock[0] < details['quantity']:
                         return False, (product_id, None, details['quantity'], stock[0] if stock else None)
         return True, None
+
+    @staticmethod
+    def get_low_stock(q):
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            # Get all low-stock variants (where variant stock is below threshold)
+            cursor.execute("""
+                    SELECT 
+                        p.name AS product_name,
+                        pv.variant_name,
+                        pv.stock,
+                        pv.stock_low
+                    FROM product_variant pv
+                    JOIN product p ON p.id = pv.product_id
+                    WHERE pv.stock <= pv.stock_low
+                    ORDER BY pv.stock ASC
+                """)
+            low_stock_variants = cursor.fetchall()
+
+            # Now, get all products with no variants and low stock
+            cursor.execute("""
+                    SELECT 
+                        p.name AS product_name,
+                        NULL AS variant_name,
+                        p.stock,
+                        p.stock_low
+                    FROM product p
+                    WHERE p.stock <= p.stock_low
+                    AND p.active = 1
+                      AND p.id NOT IN (SELECT DISTINCT product_id FROM product_variant)
+                    ORDER BY p.stock ASC
+                """)
+            low_stock_products = cursor.fetchall()
+
+            # Merge and take the first `limit` items overall
+            all_low_stock = low_stock_variants + low_stock_products
+
+            all_low_stock = [dict(zip(["product_name", "variant_name", "stock", "low_stock"], row)) for row in all_low_stock]
+
+            if q: return all_low_stock[:q]
+            else: return all_low_stock

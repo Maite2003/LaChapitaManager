@@ -99,6 +99,9 @@ class ProductService:
     def get_category_id_by_name(name):
         return Category.get_id_by_name(name)
 
+    @staticmethod
+    def get_low_stock(q=0):
+        return Product.get_low_stock(q)
 
 
 

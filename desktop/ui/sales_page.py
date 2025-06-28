@@ -1,8 +1,9 @@
+from copy import deepcopy
 from functools import partial
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QDateEdit, QDoubleSpinBox,
-    QComboBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QDialog
+    QComboBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QDialog, QToolButton
 )
 from PySide6.QtCore import Qt, QDate
 
@@ -74,7 +75,6 @@ class SalesPage(QWidget):
         # Client
         filter_layout.addWidget(QLabel("Cliente:"))
         self.client_filter = QComboBox()
-        self.client_filter.addItem("Todos", None)
         filter_layout.addWidget(self.client_filter)
 
         # Connect filters
@@ -184,7 +184,8 @@ class SalesPage(QWidget):
             self.table.setItem(row, 3, item_amount)
 
             # Detail buttons
-            details_btn = QPushButton("Detalles")
+            details_btn = QToolButton()
+            details_btn.setText("Detalles")
             details_btn.clicked.connect(partial(self.open_add_sale_dialog, sale))
             details_btn.setStyleSheet("padding: 4px;")
             self.table.setCellWidget(row, 4, details_btn)
@@ -204,6 +205,9 @@ class SalesPage(QWidget):
                     actual_products[key] = {'quantity': qty, 'unit_price': price, "active": active}
             return actual_products
 
+        if not sale and len(ProductService.get_all_products(active=1)) == 0:
+            return QMessageBox.warning(self, "Error", "No hay productos disponibles para agregar a la venta.")
+
         dialog = AddSaleDialog(self, sale)
         if dialog.exec() and dialog.result() == QDialog.DialogCode.Accepted:
             data = dialog.get_data()
@@ -217,15 +221,15 @@ class SalesPage(QWidget):
                 return QMessageBox.warning(self, "Error", "Debe agregar al menos un producto a la venta.")
 
             items = unify_item()
-
+            print("items es ", items)
             # Check the stock is available
-            available, details = self.check_stock(items=items, sale=sale)
+            available, details = self.check_stock(items=deepcopy(items), sale=sale)
 
             if not available:
                 product_id, variant_id, quantity, stock = details
                 msg = f"No hay suficiente stock para el producto {product_id} {'con variante ' + str(variant_id) if variant_id else ''}. Stock actual: {stock}, cantidad requerida: {quantity}."
                 return QMessageBox.warning(self, "Error de stock", msg)
-
+            print("Items antes del save es ", items)
             TransactionsService.save_sale(sale_id=sale_id, date=date, client_id=client_id, items=items)
             self.reset_filters()
             self.load_filtered_sales()
@@ -233,15 +237,13 @@ class SalesPage(QWidget):
     def check_stock(self, items, sale):
         """
         Makes the difference to see how many more products were added
-        :param items:
-        :param sale:
-        :return:
         """
 
-        already = sale['items']
-
-        for key, value in already.items():
-            if key in items:
-                items[key]['quantity'] -= value['quantity'] # Shouldn't be checked for stock because it was already # checked when the sale was created
-
+        if sale:
+            already = sale['items']
+            for key, value in already.items():
+                if key in items:
+                    if items[key]['quantity'] != value['quantity']:
+                        items[key]['quantity'] -= value['quantity'] # Shouldn't be checked for stock because it was already # checked when the sale was created
+                        print("Chequear solo por ", items[key]['quantity'], " de ", key)
         return ProductService.check_stock(items=items)

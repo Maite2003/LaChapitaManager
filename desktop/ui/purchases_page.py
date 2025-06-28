@@ -2,10 +2,11 @@ from functools import partial
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QDateEdit, QDoubleSpinBox,
-    QComboBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QDialog
+    QComboBox, QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QMessageBox, QDialog, QToolButton
 )
 from PySide6.QtCore import Qt, QDate
 
+from core.product_services import ProductService
 from core.transactions_services import TransactionsService
 from core.agenda_services import AgendaService
 from desktop.ui.purchase_dialog import PurchaseDialog
@@ -73,7 +74,6 @@ class PurchasesPage(QWidget):
         # Supplier
         filter_layout.addWidget(QLabel("Proveedor:"))
         self.supplier_filter = QComboBox()
-        self.supplier_filter.addItem("Todos", None)
         filter_layout.addWidget(self.supplier_filter)
 
         # Connect filters
@@ -184,10 +184,12 @@ class PurchasesPage(QWidget):
             self.table.setItem(row, 3, item_amount)
 
             # Detail buttons
-            details_btn = QPushButton("Detalles")
+            details_btn = QToolButton()
+            details_btn.setText("Detalles")
             details_btn.clicked.connect(partial(self.open_purchase_dialog, purchase))
             details_btn.setStyleSheet("padding: 4px;")
             self.table.setCellWidget(row, 4, details_btn)
+
 
     def open_purchase_dialog(self, purchase=None):
         def unify_item():
@@ -204,6 +206,10 @@ class PurchasesPage(QWidget):
                     actual_products[key] = {'quantity': qty, 'unit_price': price, "active": active}
             return actual_products
 
+        opt = ProductService.get_all_products(active=1)
+        if not purchase and len(opt) == 0:
+            return QMessageBox.warning(self, "Error", "No hay productos activos para realizar una compra.")
+
         dialog = PurchaseDialog(self, purchase)
         if dialog.exec() and dialog.result() == QDialog.DialogCode.Accepted:
             data = dialog.get_data()
@@ -216,7 +222,6 @@ class PurchasesPage(QWidget):
                 return QMessageBox.warning(self, "Error", "Debe agregar al menos un producto a la compra.")
 
             items = unify_item()
-            print("items ", items)
             TransactionsService.save_purchase(purchase_id=purchase_id, date=date, supplier_id=supplier_id, items=items)
             self.reset_filters()
             self.load_filtered_purchases()
