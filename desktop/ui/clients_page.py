@@ -118,7 +118,11 @@ class ClientsPage(QWidget):
 
             return sorted(filtered, key=lambda c: (c['name'].lower(), c['surname'].lower()))
 
+
         filtered = get_filtered_clients()
+
+        self.total_label.setText(f"Total de clientes: {len(filtered)}")
+
         self.client_table.setRowCount(len(filtered))
         for row, client in enumerate(filtered):
             self.client_table.setItem(row, 0, QTableWidgetItem(client['id']))
@@ -155,3 +159,8 @@ class ClientsPage(QWidget):
                 AgendaService.add_client(data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
             self.load_clients()
 
+    def refresh(self):
+        """Refresh the clients page."""
+        self.reset_filters()
+        self.load_clients()
+        self.update_delete_button_state()

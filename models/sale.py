@@ -61,7 +61,6 @@ class Sale:
                     save_transaction(product_id=p[0], variant_id=p[1], type="out", quantity=details["quantity"],conn=conn, sale_id=self.id)
                 elif p in old_products: # Product was already on the sale
                     old = old_products.get(p, {}).get("quantity", 0)
-                    print("old quantity was", old)
                     if details["quantity"] != old: # If the quantity has changed
                         # Update existing products
                         cursor.execute("UPDATE sale_detail SET variant_id = ?, quantity = ?, unit_price = ? WHERE sale_id = ? AND product_id = ?", (p[1], details["quantity"], details['unit_price'], self.id, p[0]))
@@ -233,5 +232,4 @@ class Sale:
                     "total": total
                 })
 
-            print(categories)
             return categories

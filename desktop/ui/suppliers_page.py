@@ -121,6 +121,9 @@ class SuppliersPage(QWidget):
             return sorted(filtered, key=lambda c: (c['name'].lower(), c['surname'].lower()))
 
         filtered = get_filtered_suppliers()
+
+        self.total_label.setText(f"Total de proveedores: {len(filtered)}")
+
         self.supplier_table.setRowCount(len(filtered))
         for row, client in enumerate(filtered):
             self.supplier_table.setItem(row, 0, QTableWidgetItem(client['id']))
@@ -157,3 +160,7 @@ class SuppliersPage(QWidget):
                 AgendaService.add_supplier(data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
             self.load_suppliers()
 
+    def refresh(self):
+        self.reset_filters()
+        self.load_suppliers()
+        self.update_delete_button_state()

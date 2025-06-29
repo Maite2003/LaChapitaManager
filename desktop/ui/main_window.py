@@ -1,8 +1,10 @@
 import os
 
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, QLabel
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, QLabel, QMessageBox
 from PySide6.QtCore import Qt
+
+from desktop.ui.backup_dialog import BackupDialog
 from desktop.ui.clients_page import ClientsPage
 from desktop.ui.home_page import HomePage
 from desktop.ui.suppliers_page import SuppliersPage
@@ -11,11 +13,15 @@ from desktop.ui.categories_page import CategoriesPage
 from desktop.ui.inventory_page import InventoryPage
 from desktop.ui.purchases_page import PurchasesPage
 from desktop.ui.sales_page import SalesPage
+from utils.backup import make_backup, authenticate_drive
 
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+
+        authenticate_drive()
+
         self.setWindowTitle("LaChapita Manager")
         IMG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "logo.png")
         self.setWindowIcon(QIcon(IMG_PATH))
@@ -83,6 +89,8 @@ class MainWindow(QWidget):
         self.nav_btns.append(self.suppliers_btn)
         self.categories_btn = QPushButton("Categorías")
         self.nav_btns.append(self.categories_btn)
+        self.backup_btn = QPushButton("Backup")
+        self.nav_btns.append(self.backup_btn)
 
         for btn in self.nav_btns:
             btn.setStyleSheet(button_style)
@@ -118,6 +126,7 @@ class MainWindow(QWidget):
         self.clients_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(4), self.activate_button(self.clients_btn, self.nav_btns)))
         self.suppliers_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(5), self.activate_button(self.suppliers_btn, self.nav_btns)))
         self.categories_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(6), self.activate_button(self.categories_btn, self.nav_btns)))
+        self.backup_btn.clicked.connect(lambda: self.on_backup_btn_clicked())
 
         # Activar el botón de home por defecto
         self.activate_button(self.home_btn, self.nav_btns)
@@ -131,6 +140,13 @@ class MainWindow(QWidget):
         # Señales
         self.inventory_page.product_changed.connect(self.categories_page.refresh)
 
+    def closeEvent(self, event):
+        """
+        Override close event make a backup before closing the window.
+        """
+        make_backup()
+        event.accept()
+
     def on_page_changed(self, index):
         current_page = self.stack.widget(index)
         # Intentar llamar a refresh si existe el método
@@ -140,3 +156,19 @@ class MainWindow(QWidget):
     def activate_button(self, active_btn, btns):
         for btn in btns:
             btn.setChecked(btn == active_btn)
+
+    def on_backup_btn_clicked(self):
+        """
+        Handle the backup button click.
+        """
+        dialog = BackupDialog()
+        dialog.exec()
+
+        # After changing the db, refresh the pages
+        self.home_page.refresh()
+        self.inventory_page.refresh()
+        self.sales_page.refresh()
+        self.purchases_page.refresh()
+        self.clients_page.refresh()
+        self.suppliers_page.refresh()
+        self.categories_page.refresh()

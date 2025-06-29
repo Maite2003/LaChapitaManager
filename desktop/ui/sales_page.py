@@ -221,7 +221,6 @@ class SalesPage(QWidget):
                 return QMessageBox.warning(self, "Error", "Debe agregar al menos un producto a la venta.")
 
             items = unify_item()
-            print("items es ", items)
             # Check the stock is available
             available, details = self.check_stock(items=deepcopy(items), sale=sale)
 
@@ -247,3 +246,10 @@ class SalesPage(QWidget):
                         items[key]['quantity'] -= value['quantity'] # Shouldn't be checked for stock because it was already # checked when the sale was created
                         print("Chequear solo por ", items[key]['quantity'], " de ", key)
         return ProductService.check_stock(items=items)
+
+    def refresh(self):
+        """
+        Refresh the sales page.
+        """
+        self.reset_filters()
+        self.load_filtered_sales()

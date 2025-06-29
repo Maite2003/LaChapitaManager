@@ -1,1 +1,37 @@
-desktop/.env
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Backup files
+*.bak
+*.db-journal
+
+# Credentials or secrets
+mycredential.txt
+desktop/client_secrets.json
+
+# Local database
+*.db
+
+# PyInstaller or other build artifacts
+build/
+dist/
+*.spec
+
+# Logs or debug output
+*.log
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.swp
+
+# System files
+.DS_Store
+Thumbs.db

@@ -78,13 +78,9 @@ class CategoriesPage(QWidget):
         if not name:
             QMessageBox.warning(self, "Error", "El nombre no puede estar vacío.")
             return
-        try:
-            ProductService.add_category(name)
-        except Exception as e:
-            print("Excepción capturada:", e)
-        else:
-            self.name_input.clear()
-            self.load_categories()
+        ProductService.add_category(name)
+        self.name_input.clear()
+        self.load_categories()
 
     def handle_delete_selected(self):
         selected_items = self.table.selectionModel().selectedRows()
