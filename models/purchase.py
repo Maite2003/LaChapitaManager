@@ -5,11 +5,11 @@ from datetime import datetime
 
 class Purchase:
     def __init__(self, items, supplier_id, date=datetime.now().strftime('%Y-%m-%d'), id=None):
-        self.id = id
-        self.date = date
         """
         items = dictionary with (product_id, variant_id) as key and a dictionary with quantity and unit_price as value
         """
+        self.id = id
+        self.date = date
         self.items = items
         self.total = 0
         for key, value in items.items():
@@ -18,6 +18,10 @@ class Purchase:
 
 
     def save(self):
+        """
+        Save the purchase to the database. If it has an id, it updates the existing purchase.
+        :return: ID of the purchase
+        """
         with get_connection() as conn:
             cursor = conn.cursor()
 
@@ -40,6 +44,9 @@ class Purchase:
         return self.id
 
     def save_details(self, conn):
+        """
+        Save the details of the purchase to the database. It updates the existing details or adds new ones.
+        """
         with conn:
             cursor = conn.cursor()
 
@@ -51,13 +58,13 @@ class Purchase:
             # Delete products that are no longer in the purchase
             for product_id, variant_id in delete:
                 cursor.execute("DELETE FROM purchase_detail WHERE purchase_id = ? AND product_id = ? AND variant_id = ?", (self.id, product_id, variant_id))
-                # Update the trsaction
+                # Update the transaction
                 delete_transaction(product_id=product_id, variant_id=variant_id, type="in", quantity=old_products[(product_id, variant_id)]['quantity'], conn=conn, purchase_id=self.id)
 
             for p, details in self.items.items():
                 if p not in old_products: # New product
                     cursor.execute("INSERT INTO purchase_detail (purchase_id, product_id, variant_id, quantity, unit_price) VALUES (?, ?, ?, ?, ?)", (self.id, p[0], p[1], details["quantity"], details["unit_price"]))
-                    # Actualizar stock del producto
+                    # New transaction
                     save_transaction(product_id=p[0], variant_id=p[1], type="in", quantity=details["quantity"],conn=conn, purchase_id=self.id)
                 elif p in old_products:
                     if details["quantity"] != old_products.get(p, {}).get("quantity", 0): # If the quantity has changed
@@ -67,10 +74,15 @@ class Purchase:
 
     @staticmethod
     def get_by_id(purchase_id):
+        """
+        Get the purchase details by ID.
+        :param purchase_id: ID of the purchase to retrieve.
+        :return: Dictionary with purchase details including id, date, supplier_id, total, and items.
+        """
         with get_connection() as conn:
             cur = conn.cursor()
 
-            # Obtener datos generales de la venta
+            # Get general information of the purchase
             cur.execute("""
                    SELECT purchase.id, purchase.date, purchase.supplier_id, purchase.total
                    FROM purchase
@@ -79,7 +91,7 @@ class Purchase:
             general_info = cur.fetchone()
 
 
-            # Obtener detalles de productos
+            # Get items of the purchase
             cur.execute("""
                    SELECT pd.product_id, pd.variant_id, pd.quantity, pd.unit_price, product.active
                    FROM purchase_detail pd
@@ -99,6 +111,12 @@ class Purchase:
 
     @staticmethod
     def get_all(start_date, end_date):
+        """
+        Get all purchases within a specified date range.
+        :param start_date: Date to start filtering purchases. If None, it retrieves all purchases.
+        :param end_date: Date to end filtering purchases. If None, it retrieves all purchases.
+        :return: List of dictionaries with purchase details including id, date, supplier_id, total, and items.
+        """
         with get_connection() as conn:
             cursor = conn.cursor()
             if start_date is None or end_date is None:
@@ -115,7 +133,7 @@ class Purchase:
                     ORDER BY purchase.date DESC
                 """, (start_date, end_date))
             purchases = cursor.fetchall()
-        items = []
+        items = [] # List to store all purchases with their items
         for row in purchases:
             purchase = {
             "id": row[0],
@@ -123,6 +141,7 @@ class Purchase:
             "supplier_id": row[2] if row[2] else None,
             "total": row[3],
             }
+            # Get items for each purchase
             cursor.execute("""
                 SELECT pd.product_id, pd.variant_id, pd.quantity, pd.unit_price, product.active
                 FROM purchase_detail pd
@@ -132,6 +151,7 @@ class Purchase:
             """, (purchase["id"],))
             details = cursor.fetchall()
             purchase_items = {}
+            # Create a dictionary with (product_id, variant_id) as key and quantity, unit_price, and active status as value
             for item in details:
                 key = (item[0], item[1])  # (product_id, variant_id)
                 purchase_items[key] = {"quantity": item[2], "unit_price": item[3], "active": item[4]}
@@ -141,6 +161,11 @@ class Purchase:
 
     @staticmethod
     def delete(purchase_id):
+        """
+        Delete a purchase by its ID. It also updates the stock of the products involved in the purchase.
+        :param purchase_id: ID of the purchase to delete.
+        :return: None
+        """
         with get_connection() as conn:
             cursor = conn.cursor()
 

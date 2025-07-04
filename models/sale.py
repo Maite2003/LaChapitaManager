@@ -5,11 +5,11 @@ from datetime import datetime
 
 class Sale:
     def __init__(self, items, client_id, date=datetime.now().strftime('%Y-%m-%d'), id=None):
-        self.id = id
-        self.date = date
         """
         items = dictionary with (product_id, variant_id) as key and a dictionary with quantity and unit_price as value
         """
+        self.id = id
+        self.date = date
         self.items = items
         self.total = 0
         for key, value in items.items():
@@ -18,6 +18,10 @@ class Sale:
 
 
     def save(self):
+        """
+        Save the sale to the database. If self.id is set, it updates the existing sale.
+        :return:
+        """
         with get_connection() as conn:
             cursor = conn.cursor()
 
@@ -36,10 +40,13 @@ class Sale:
                     VALUES (?, ?, ?)
                 """, (self.date, self.client_id, self.total))
                 self.id = cursor.lastrowid
-            self.save_details(conn=conn)
+            self.save_details(conn=conn) # Save the details of the sale
         return self.id
 
     def save_details(self, conn):
+        """
+        Save the details of the sale to the database. It updates the existing details or adds new ones.
+        """
         with conn:
             cursor = conn.cursor()
 
@@ -68,6 +75,11 @@ class Sale:
 
     @staticmethod
     def get_by_id(sale_id):
+        """
+        Get a sale by its ID, including general information and details of products sold.
+        :param sale_id: ID of the sale to retrieve.
+        :return: Dictionary with general information and a list of items sold.
+        """
         with get_connection() as conn:
             cur = conn.cursor()
 
@@ -99,6 +111,12 @@ class Sale:
 
     @staticmethod
     def get_all(start_date, end_date):
+        """
+        Get all sales within a date range or all sales if no date range is provided.
+        :param start_date: Date to start filtering sales from. If None, all sales are returned.
+        :param end_date: Date to end filtering sales at. If None, all sales are returned.
+        :return: List of dictionaries, each containing sale information and items sold.
+        """
         with get_connection() as conn:
             cursor = conn.cursor()
             if start_date is None or end_date is None:
@@ -141,6 +159,11 @@ class Sale:
 
     @staticmethod
     def delete(sale_id):
+        """
+        Delete a sale by its ID, including all details and transactions associated with it.
+        :param sale_id: ID of the sale to delete.
+        :return: None
+        """
         with get_connection() as conn:
             cursor = conn.cursor()
 
@@ -157,6 +180,12 @@ class Sale:
 
     @staticmethod
     def get_total(start_date, end_date):
+        """
+        Get the total sales amount within a date range or all sales if no date range is provided.
+        :param start_date: Date to start filtering sales from. If None, all sales are considered.
+        :param end_date: Date to end filtering sales at. If None, all sales are considered.
+        :return: Total sales amount as a float.
+        """
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -168,6 +197,12 @@ class Sale:
 
     @staticmethod
     def get_top5_products(start_date, end_date):
+        """
+        Get the top 5 products sold by quantity within a date range or all products if no date range is provided.
+        :param start_date: Date to start filtering sales from. If None, all products are considered.
+        :param end_date: Date to end filtering sales at. If None, all products are considered.
+        :return: List of tuples containing product name, variant name, and total quantity sold.
+        """
         with get_connection() as conn:
             cursor = conn.cursor()
             if start_date is None or end_date is None:
@@ -201,6 +236,12 @@ class Sale:
 
     @staticmethod
     def get_sales_by_categories(start_date, end_date):
+        """
+        Get the total sales amount by category within a date range or all categories if no date range is provided.
+        :param start_date: Date to start filtering sales from. If None, all categories are considered.
+        :param end_date: Date to end filtering sales at. If None, all categories are considered.
+        :return: Dictionary with category ID as key and a dictionary with category name and total sales amount as value.
+        """
         with get_connection() as conn:
             cursor = conn.cursor()
 

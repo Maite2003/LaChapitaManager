@@ -4,9 +4,9 @@ from PySide6.QtWidgets import (
     QWidget, QLabel, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox, QCheckBox, QTableWidget, QTableWidgetItem,
     QPushButton, QHeaderView, QMessageBox, QToolButton
 )
-from PySide6.QtCore import Qt, Signal, QTimer
-from core.product_services import ProductService
-from desktop.ui.product_dialog import AddProductDialog
+from PySide6.QtCore import Qt, Signal
+from services.product_services import ProductService
+from .product_dialog import AddProductDialog
 
 
 class InventoryPage(QWidget):
@@ -145,15 +145,21 @@ class InventoryPage(QWidget):
                 if category != "Todas las categorías" and p["category"] != category:
                     continue
                 if len(p['variants']) == 0:
-                    if low_stock and p["stock"] > p["stock_low"]:
-                        continue
-                    if no_stock and p["stock"] != 0:
-                        continue
+                    if low_stock and p["stock"] <= p["stock_low"]:
+                        pass
+                    else:
+                        if low_stock and p["stock"] > p["stock_low"]:
+                            continue
+                        elif no_stock and p["stock"] != 0:
+                            continue
                 else:
-                    if low_stock and not is_variant_low(p["variants"]):
-                        continue
-                    if no_stock and not is_variant_no_stock(p["variants"]):
-                        continue
+                    if low_stock and is_variant_low(p["variants"]):
+                        pass
+                    else:
+                        if low_stock and not is_variant_low(p["variants"]):
+                            continue
+                        elif no_stock and not is_variant_no_stock(p["variants"]):
+                            continue
                 filtered.append(p)
             return sorted(filtered, key=lambda x: x["name"].lower())
 

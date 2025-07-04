@@ -1,13 +1,12 @@
-from itertools import product
 
 from PySide6.QtCore import QDate
 from PySide6.QtWidgets import (
     QDialog, QLabel, QMessageBox,
-    QComboBox, QPushButton, QHeaderView, QSpinBox
+    QComboBox, QPushButton, QHeaderView, QSpinBox, QToolButton
 )
-from core.product_services import ProductService
-from core.agenda_services import AgendaService
-from desktop.ui.transaction_dialog_layout import TransactionDialogLayout
+from services.product_services import ProductService
+from services.agenda_services import AgendaService
+from .transaction_dialog_layout import TransactionDialogLayout
 
 
 class AddSaleDialog(QDialog):
@@ -111,7 +110,6 @@ class AddSaleDialog(QDialog):
                     if k[0] not in options:
                         options[k[0]] = ProductService.get_product_by_id(k[0])["name"]
 
-
             return options
 
         def on_variant_selected():
@@ -166,7 +164,8 @@ class AddSaleDialog(QDialog):
             unit_label.setText(product['unit'])
 
             if not product['variants']: # The product has no variants
-                qty_spin.setMaximum(product['stock'] + quantity)
+                if product_id: qty_spin.setMaximum(product['stock'] + quantity)
+                else: qty_spin.setMaximum(product['stock'])
                 price_label.setText(f"${product['price']:.2f}")
                 variant_combo.setEnabled(False)
                 variant_combo.clear()
@@ -221,7 +220,8 @@ class AddSaleDialog(QDialog):
         self.table.setCellWidget(row, 5, total_label)
 
         # Delete button
-        delete_btn = QPushButton("x")
+        delete_btn = QToolButton()
+        delete_btn.setText("X")
         delete_btn.setToolTip("Eliminar producto")
         delete_btn.clicked.connect(lambda: self.layout.delete_product_row(row))
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)

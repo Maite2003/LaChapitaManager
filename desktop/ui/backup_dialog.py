@@ -14,7 +14,7 @@ class BackupDialog(QDialog):
         self.table = QTableWidget()
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(["Id", "Archivo", "Fecha", "Hora"])
-        self.table.setColumnHidden(0, True)  # Ocultar columna de ID
+        self.table.setColumnHidden(0, True)  # Hide the ID column
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
@@ -40,7 +40,6 @@ class BackupDialog(QDialog):
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
-
         self.load_backups()
 
 
@@ -74,6 +73,4 @@ class BackupDialog(QDialog):
             restore_backup(file_id)
             QMessageBox.information(self, "Restaurado", "Backup restaurado correctamente.")
             self.accept()
-        else:
-            print("Restauración cancelada.")
 

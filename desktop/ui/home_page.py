@@ -1,9 +1,8 @@
 from PySide6.QtWidgets import QVBoxLayout, QWidget, QComboBox, QHBoxLayout, QLabel, QTableWidget, QTableWidgetItem, \
     QHeaderView, QScrollArea
-from PySide6.QtCore import Qt
-from core.agenda_services import AgendaService
-from core.product_services import ProductService
-from core.transactions_services import TransactionsService
+from services.agenda_services import AgendaService
+from services.product_services import ProductService
+from services.transactions_services import TransactionsService
 from desktop.ui.category_progress import SalesCategoryProgress
 from utils.periods import PERIODS, get_period_range
 
@@ -115,11 +114,10 @@ class HomePage(QWidget):
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         purchases_layout.addWidget(self.low_stock_table)
 
-        # Sales category progress
-        # Contenedor para los progress bars
+        # Progress bar that shows the sales by categories
         self.categories_progress = SalesCategoryProgress()
 
-        # ScrollArea que contiene el widget anterior
+        # ScrollArea that contains the categories progress bar
         self.categories_scroll = QScrollArea()
         self.categories_scroll.setWidgetResizable(True)
         self.categories_scroll.setWidget(self.categories_progress)
@@ -129,12 +127,15 @@ class HomePage(QWidget):
         layout.addWidget(self.categories_scroll)
 
     def table_heigt(self, table, rows):
+        """
+        Set the height of a table based on the number of rows and the height of the first row.
+        """
         if table.rowCount() == 0:
             row_height = 30
         else:
             row_height = table.rowHeight(0)
 
-        total_height = (row_height * rows) + table.horizontalHeader().height() + 2  # margen opcional
+        total_height = (row_height * rows) + table.horizontalHeader().height() + 2
         table.setFixedHeight(total_height)
 
     def refresh(self):

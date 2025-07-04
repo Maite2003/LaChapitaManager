@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QTableWidget, QTableWidgetItem,
     QHBoxLayout, QCheckBox, QPushButton, QDialog, QHeaderView, QMessageBox, QComboBox
 )
-from core.agenda_services import AgendaService
+from services.agenda_services import AgendaService
 from desktop.ui.client_dialog import ClientDialog
 from PySide6.QtCore import Qt
 
@@ -152,10 +152,10 @@ class ClientsPage(QWidget):
                 return
 
             if client:
-                # Editar cliente existente
+                # Edit existing client
                 AgendaService.update_client(client['id'], data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
             else:
-                # Crear nuevo cliente
+                # New client
                 AgendaService.add_client(data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
             self.load_clients()
 

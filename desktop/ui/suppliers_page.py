@@ -1,12 +1,11 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QTableWidget, QTableWidgetItem,
-    QHBoxLayout, QCheckBox, QPushButton, QDialog, QHeaderView, QMessageBox, QComboBox
+    QHBoxLayout, QCheckBox, QPushButton, QDialog, QHeaderView, QMessageBox, QToolButton
 )
-from core.agenda_services import AgendaService
-from desktop.ui.client_dialog import ClientDialog
+from services.agenda_services import AgendaService
 from PySide6.QtCore import Qt
 
-from desktop.ui.supplier_dialog import SupplierDialog
+from .supplier_dialog import SupplierDialog
 
 
 class SuppliersPage(QWidget):
@@ -133,7 +132,9 @@ class SuppliersPage(QWidget):
             self.supplier_table.setItem(row, 4, QTableWidgetItem(client.get('phone') or ""))
 
             # Button edit
-            btn_edit = QPushButton("Editar")
+            btn_edit = QToolButton()
+            btn_edit.setText("Editar")
+            btn_edit.setToolTip("Editar proveedor")
             btn_edit.clicked.connect(lambda checked, c=client: self.open_supplier(c))
             self.supplier_table.setCellWidget(row, 5, btn_edit)
 

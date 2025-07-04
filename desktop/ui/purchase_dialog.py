@@ -2,16 +2,16 @@ from PySide6.QtCore import QDate
 from PySide6.QtWidgets import (
     QDialog, QLabel, QDoubleSpinBox, QComboBox, QPushButton, QSpinBox
 )
-from core.product_services import ProductService
-from core.agenda_services import AgendaService
-from desktop.ui.transaction_dialog_layout import TransactionDialogLayout
+from services.product_services import ProductService
+from services.agenda_services import AgendaService
+from .transaction_dialog_layout import TransactionDialogLayout
 
 
 class PurchaseDialog(QDialog):
     def __init__(self, parent=None, purchase=None):
         super().__init__(parent)
 
-        self.setWindowTitle("Agregar venta")
+        self.setWindowTitle("Agregar compra")
         self.setMinimumSize(700, 400)
 
         self.layout = TransactionDialogLayout(self)
@@ -46,7 +46,7 @@ class PurchaseDialog(QDialog):
                     variant_combo.setCurrentIndex(0)
 
             product = ProductService.get_product_by_id(int(self.table.cellWidget(row, 0).currentData()))
-            unit_label.setText(product['unit'])
+            unit_label.setText(str(product['unit']))
 
             if not variant_id and product['variants'] != []:
                 load_variants(p=product)
@@ -92,6 +92,7 @@ class PurchaseDialog(QDialog):
         # Unit price
         price_spin = QDoubleSpinBox()
         price_spin.setMinimum(0)
+        price_spin.setDecimals(2)
         price_spin.setMaximum(999999)  # Set a reasonable maximum
         price_spin.setValue(1)
         self.table.setCellWidget(row, 4, price_spin)

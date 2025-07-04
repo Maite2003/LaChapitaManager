@@ -5,18 +5,25 @@ from pathlib import Path
 
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-from db.db import DB_PATH
+
+from db.db import get_writable_db_path
+from utils.path_utils import resource_path, get_writable_path
 
 gauth = None
 
 def make_backup():
+    """
+    Create a backup of the current database and upload it to Google Drive.
+    :return: True if backup was successful, False otherwise.
+    """
     now = datetime.datetime.now()
     timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
-    backup_filename = f"lachapita_backup_{timestamp}.db"
+    backup_filename = os.path.join(get_writable_path(), f"lachapita_backup_{timestamp}.db")
 
     # Name of the file with timestamp
     try:
-        shutil.copy(DB_PATH, backup_filename)
+        db_path = get_writable_db_path()
+        shutil.copy(db_path, backup_filename)
         upload_backup_to_drive(backup_filename)
         Path.unlink(Path(backup_filename))  # Remove the local backup file after uploading
     except Exception as e:
@@ -24,7 +31,11 @@ def make_backup():
         return False
 
 def delete_backup_google_drive(drive, folder_id):
-    """Delete backups older than 15 days from Google Drive and backups from the last hour."""
+    """
+    Delete backups older than 15 days from Google Drive and backups from the last hour.
+    :param drive: Authenticated Google Drive instance.
+    :param folder_id: ID of the folder where backups are stored.
+    """
     now = datetime.datetime.now()
     file_list = drive.ListFile({
         'q': f"'{folder_id}' in parents and trashed=false"
@@ -46,7 +57,11 @@ def delete_backup_google_drive(drive, folder_id):
                 print(f"Skipping {name} in Drive: {e}")
 
 def upload_backup_to_drive(back_up_path):
-
+    """
+    Upload a backup file to Google Drive.
+    :param back_up_path: Path to the backup file to upload.
+    :return: Tuple (bool, str) indicating success and the name of the uploaded file.
+    """
     existing_files, folder_id, drive = get_backups()
 
     if existing_files: last_file = existing_files[0]
@@ -80,13 +95,10 @@ def authenticate_drive():
     """
     global gauth
     gauth = GoogleAuth()
-    # Ruta absoluta del directorio donde está este archivo backup.py
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    # Desde utils/ subir un nivel y entrar a desktop/
-    client_secrets_path = os.path.abspath(os.path.join(base_dir, "..", "desktop", "client_secrets.json"))
+    client_secrets_path = resource_path("desktop/client_secrets.json")
     gauth.settings['client_config_file'] = client_secrets_path
 
-    gauth.LoadCredentialsFile("mycredential.txt")
+    gauth.LoadCredentialsFile(os.path.join(get_writable_path(), "mycredential.txt"))
 
     if gauth.credentials is None:
         gauth.LocalWebserverAuth()
@@ -95,12 +107,12 @@ def authenticate_drive():
     else:
         gauth.Authorize()
 
-    gauth.SaveCredentialsFile("mycredential.txt")
+    gauth.SaveCredentialsFile(os.path.join(get_writable_path(), "mycredential.txt"))
 
 def get_backups():
     """
     Get a list of backups from the local backups folder.
-    Returns a list of dictionaries with 'date' and 'time'.
+    :return: Tuple (list of backups, folder_id, drive instance)
     """
     global gauth
     if gauth is None:
@@ -135,6 +147,7 @@ def get_backups():
 def format_files(files):
     """
     Format the list of files to include only the necessary information.
+    :return: List of dictionaries with date, time, title, and id.
     """
     formatted_files = []
     for file in files:
@@ -164,4 +177,6 @@ def restore_backup(file_id):
     drive = GoogleDrive(gauth)
 
     file = drive.CreateFile({'id': file_id})
-    file.GetContentFile(DB_PATH)  # Downloads the file to local_filename.ext
+    db_path = get_writable_db_path()
+
+    file.GetContentFile(db_path)

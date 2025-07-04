@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QHBoxLayout, QPushButton, QLineEdit, QListWidget, \
     QMessageBox, QInputDialog, QTableWidget, QTableWidgetItem, QHeaderView
-from core.product_services import ProductService
+from services.product_services import ProductService
 
 
 class CategoriesPage(QWidget):
@@ -54,7 +54,6 @@ class CategoriesPage(QWidget):
         form_layout.addWidget(self.add_btn)
 
         self.layout().addLayout(form_layout)
-
         self.load_categories()
 
     def load_categories(self):

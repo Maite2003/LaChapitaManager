@@ -1,19 +1,18 @@
-import os
-
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, QLabel, QMessageBox
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, QLabel
 from PySide6.QtCore import Qt
 
-from desktop.ui.backup_dialog import BackupDialog
-from desktop.ui.clients_page import ClientsPage
-from desktop.ui.home_page import HomePage
-from desktop.ui.suppliers_page import SuppliersPage
-from desktop.ui.categories_page import CategoriesPage
+from .backup_dialog import BackupDialog
+from .clients_page import ClientsPage
+from .home_page import HomePage
+from .suppliers_page import SuppliersPage
+from .categories_page import CategoriesPage
+from .inventory_page import InventoryPage
+from .purchases_page import PurchasesPage
+from .sales_page import SalesPage
 
-from desktop.ui.inventory_page import InventoryPage
-from desktop.ui.purchases_page import PurchasesPage
-from desktop.ui.sales_page import SalesPage
 from utils.backup import make_backup, authenticate_drive
+from utils.path_utils import resource_path
 
 
 class MainWindow(QWidget):
@@ -23,8 +22,8 @@ class MainWindow(QWidget):
         authenticate_drive()
 
         self.setWindowTitle("LaChapita Manager")
-        IMG_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "logo.png")
-        self.setWindowIcon(QIcon(IMG_PATH))
+        logo_path = resource_path("assets/logo.png")
+        self.setWindowIcon(QIcon(logo_path))
         self.resize(800, 600)
 
         # Estilo de botones
@@ -69,7 +68,7 @@ class MainWindow(QWidget):
         sidebar = QVBoxLayout(self.sidebar_widget)
         sidebar.setAlignment(Qt.AlignmentFlag.AlignTop)
         logo_label = QLabel()
-        logo_label.setPixmap(QIcon(IMG_PATH).pixmap(100, 100))
+        logo_label.setPixmap(QIcon(logo_path).pixmap(100, 100))
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sidebar.addStretch()
         sidebar.addWidget(logo_label)
@@ -172,3 +171,7 @@ class MainWindow(QWidget):
         self.clients_page.refresh()
         self.suppliers_page.refresh()
         self.categories_page.refresh()
+
+        # Reset to home page
+        self.stack.setCurrentIndex(0)
+        self.activate_button(self.home_btn, self.nav_btns)

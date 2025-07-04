@@ -2,15 +2,15 @@ UNITS = ["kg", "g", "bolsa", "l", "ml", "unidad", "lata", "botella", "caja"]
 
 def get_all():
     """
-    Devuelve una lista de todas las unidades disponibles.
+    Returns a list of all units.
     """
     return UNITS
 
 def add_unit(unit):
     """
-    Agrega una nueva unidad a la lista si no existe.
-    :param unit: Unidad a agregar.
-    :return: True si se agregó, False si ya existía.
+    Adds a new unit to the list if it does not already exist.
+    :param unit: The unit to add.
+    :return: True if the unit was added, False if it already exists.
     """
     if unit not in UNITS:
         UNITS.append(unit)

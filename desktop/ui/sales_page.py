@@ -7,10 +7,10 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QDate
 
-from core.product_services import ProductService
-from core.transactions_services import TransactionsService
-from core.agenda_services import AgendaService
-from desktop.ui.sale_dialog import AddSaleDialog
+from services.product_services import ProductService
+from services.transactions_services import TransactionsService
+from services.agenda_services import AgendaService
+from .sale_dialog import AddSaleDialog
 
 
 class SalesPage(QWidget):
@@ -186,6 +186,7 @@ class SalesPage(QWidget):
             # Detail buttons
             details_btn = QToolButton()
             details_btn.setText("Detalles")
+            details_btn.setToolTip("Ver detalles de la venta")
             details_btn.clicked.connect(partial(self.open_add_sale_dialog, sale))
             details_btn.setStyleSheet("padding: 4px;")
             self.table.setCellWidget(row, 4, details_btn)

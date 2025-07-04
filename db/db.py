@@ -1,20 +1,32 @@
 import sqlite3
 import os
+from utils.path_utils import resource_path
+import shutil
+from utils.path_utils import get_writable_path
 
-DB_PATH = os.path.join(os.path.dirname(__file__),"..", "data", "lachapita.db")
-SCHEMA_PATH = os.path.join(os.path.dirname(__file__),"schema.sql")
+# Get the writable database path based on the operating system. For the executable, it will be in the AppData folder on Windows.
+def get_writable_db_path():
+    app_folder = get_writable_path()
+    return os.path.join(app_folder, 'lachapita.db')
+
+# Prepare the database by copying the bundled database to a writable location if it doesn't exist.
+def prepare_database():
+    writable_db = get_writable_db_path()
+    # If the database does not exist in the writable location, copy it from the bundled resources.
+    if not os.path.exists(writable_db):
+        bundled_db = resource_path("data/lachapita.db")
+        shutil.copyfile(bundled_db, writable_db)
+    return writable_db
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH, timeout=10)  # espera hasta 10 segundos si está bloqueada
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
-
+    db_path = prepare_database()
+    return sqlite3.connect(db_path)
 
 def initialize_db():
     with get_connection() as conn:
         cursor = conn.cursor()
-        with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
+        schema_path = resource_path("db/schema.sql")
+        with open(schema_path, "r", encoding="utf-8") as f:
             schema = f.read()
             cursor.executescript(schema)
 

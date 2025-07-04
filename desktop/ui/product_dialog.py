@@ -4,9 +4,9 @@ from PySide6.QtWidgets import (
     QTableWidget, QTableWidgetItem, QSpinBox, QHeaderView
 )
 
-from core.product_services import ProductService
+from services.product_services import ProductService
 import models.units as Units
-from desktop.ui.variant_dialog import VariantDialog
+from .variant_dialog import VariantDialog
 
 
 class AddProductDialog(QDialog):
@@ -27,25 +27,25 @@ class AddProductDialog(QDialog):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        # Nombre
+        # Name
         layout.addWidget(QLabel("Nombre:"))
         self.name_input = QLineEdit()
         layout.addWidget(self.name_input)
 
-        # Unidad
+        # Unit
         layout.addWidget(QLabel("Unidad de medida"))
         self.unit_input = QComboBox()
         self.unit_input.addItems(Units.get_all())
         layout.addWidget(self.unit_input)
 
-        # Categoría
+        # Category
         layout.addWidget(QLabel("Categoría:"))
         self.category_combo = QComboBox()
         categories = sorted(c['name'] for c in ProductService.get_all_categories())
         self.category_combo.addItems(categories)
         layout.addWidget(self.category_combo)
 
-        # Precio de venta
+        # Price
         layout.addWidget(QLabel("Precio de venta:"))
         self.price_input = QDoubleSpinBox()
         self.price_input.setMinimum(0.00)
@@ -56,20 +56,20 @@ class AddProductDialog(QDialog):
         # Initial stock
         layout.addWidget(QLabel("Stock inicial (opcional):"))
         self.stock = QSpinBox()
-        self.stock.setMinimum(0)  # Permite 0
+        self.stock.setMinimum(0)
         self.stock.setMaximum(999999)
-        self.stock.setValue(0)  # Por defecto 0 = sin límite
+        self.stock.setValue(0)
         layout.addWidget(self.stock)
 
         # Minimum stock
         layout.addWidget(QLabel("Stock mínimo (opcional):"))
         self.stock_low_input = QSpinBox()
-        self.stock_low_input.setMinimum(0)  # Permite 0
+        self.stock_low_input.setMinimum(0)
         self.stock_low_input.setMaximum(999999)
-        self.stock_low_input.setValue(0)  # Por defecto 0 = sin límite
+        self.stock_low_input.setValue(0)
         layout.addWidget(self.stock_low_input)
 
-        ## --- TABLA VARIANTES ---
+        ## --- VARIANT'S TABLE ---
         layout.addWidget(QLabel("Variantes del producto:"))
         self.variant_table = QTableWidget(0, 4)
         self.variant_table.setHorizontalHeaderLabels(["Variante", "Stock", "Stock minimo", "Precio"])
@@ -97,7 +97,7 @@ class AddProductDialog(QDialog):
         variant_btn_layout.addWidget(self.delete_variant_btn)
         layout.addLayout(variant_btn_layout)
 
-        # Botones
+        # Button
         btn_layout = QHBoxLayout()
         self.save_btn = QPushButton("Guardar")
         self.save_btn.clicked.connect(self.accept)
@@ -145,7 +145,6 @@ class AddProductDialog(QDialog):
         stock_low = self.stock_low_input.value()
         stock = self.stock.value()
 
-        """Devuelve los datos del producto como un diccionario."""
         return {
             "id": self.product["id"] if self.product else None,
             "name": name,
@@ -157,7 +156,7 @@ class AddProductDialog(QDialog):
             "variants": self.variants
         }
 
-    # Variants seccion
+    # Variants section
 
     def add_variant(self):
         dialog = VariantDialog(self)
@@ -171,6 +170,7 @@ class AddProductDialog(QDialog):
 
     def edit_variant(self):
         selected = self.variant_table.currentRow()
+
         if selected < 0 or selected >= len(self.variants):
             QMessageBox.warning(self, "Error", "Seleccione una variante para editar.")
             return
@@ -212,20 +212,20 @@ class AddProductDialog(QDialog):
 
             self.variant_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
 
-        # Si hay variantes, actualizar stock y precio y deshabilitar inputs
+        # If there are variants, we disable the stock and price inputs
         if self.variants:
             total_stock = sum(v['stock'] for v in self.variants)
             prices = [v['price'] for v in self.variants]
             min_price = min(prices)
             max_price = max(prices)
 
-            # Mostrar el stock sumado y rango de precios en etiquetas (o inputs)
+            # Show total stock in the stock input
             self.stock.setValue(total_stock)
             self.stock.setDisabled(True)
             self.stock_low_input.setDisabled(True)
             self.price_input.setDisabled(True)
 
-            # En lugar de poner un precio numérico editable, mostramos un label con el rango
+            # We show the price range label if it doesn't exist
             if not hasattr(self, 'price_range_label'):
                 layout = self.layout()
                 self.price_range_label = QLabel()
@@ -238,7 +238,7 @@ class AddProductDialog(QDialog):
             self.price_range_label.show()
 
         else:
-            # No hay variantes: habilitar inputs y esconder label rango precio si existe
+            # There are no variants, we enable the stock and price inputs
             self.stock.setDisabled(False)
             self.stock_low_input.setDisabled(False)
             self.price_input.setDisabled(False)

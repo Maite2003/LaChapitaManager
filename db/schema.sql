@@ -95,7 +95,6 @@ CREATE TABLE IF NOT EXISTS transaction_stock (
     date TEXT NOT NULL,
     type TEXT CHECK(type IN ('in', 'out')) NOT NULL,
     quantity REAL NOT NULL,
-    obs TEXT,
     sale_id INTEGER,
     purchase_id INTEGER,
     FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE,

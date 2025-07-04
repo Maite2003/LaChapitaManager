@@ -1,5 +1,4 @@
-from PyQt6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar, QLayout, QSizePolicy
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QProgressBar, QSizePolicy
 
 
 class SalesCategoryProgress(QWidget):
@@ -34,7 +33,7 @@ class SalesCategoryProgress(QWidget):
             self.layout.addWidget(QLabel("No hay ventas para mostrar"))
             return
 
-        # Creamos una barra para cada categoría con porcentaje
+        # We create a progress bar for each category
         for cat_id, details in self.sales.items():
             cat_name = details.get('name', 'Desconocida')
             cat_total = details.get('total', 0)
@@ -51,6 +50,6 @@ class SalesCategoryProgress(QWidget):
 
             self.layout.addWidget(label)
             self.layout.addWidget(progress)
-        self.layout.addStretch(1)  # Añadir espacio al final del layout para que se vea mejor
+        self.layout.addStretch(1)  # Add stretch to push content to the top
 
 
