@@ -46,6 +46,26 @@ The application is developed in **Python** using **PySide6** for the graphical u
    - Place it anywhere you want; no installation is needed.
    - Double-click the executable to run the app.
 
+### Credentials Setup
+
+The application requires a `client_secrets.json` file for Google Drive integration (OAuth credentials).
+
+**Important:**  
+Place your `client_secrets.json` file inside the following folder on your system:
+
+- **Windows:**  
+  `%APPDATA%\LaChapitaManager`  
+  (e.g., `C:\Users\<YourUser>\AppData\Roaming\LaChapitaManager`)
+
+- **Linux/macOS:**  
+  `~/.config/LaChapitaManager` (or equivalent config directory)
+
+If this file is not present, the Google Drive backup feature will not work.
+
+---
+
+If you don’t have the `client_secrets.json` file yet, please follow the instructions in the [Google API Console](https://console.cloud.google.com/apis/credentials) to create OAuth credentials for your app.
+
 ### Usage
 
 - On first run, the app will create the necessary database file (`lachapita.db`) in your user’s AppData (Windows) or equivalent directory on other platforms. This ensures your data is saved in a writable location outside the installation folder.
