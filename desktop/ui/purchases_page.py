@@ -190,6 +190,7 @@ class PurchasesPage(QWidget):
             details_btn.clicked.connect(partial(self.open_purchase_dialog, purchase))
             details_btn.setStyleSheet("padding: 4px;")
             self.table.setCellWidget(row, 4, details_btn)
+        self.table.selectionModel().clearSelection()  # Clear selection after saving
 
     def open_purchase_dialog(self, purchase=None):
         def unify_item():
@@ -223,7 +224,6 @@ class PurchasesPage(QWidget):
 
             items = unify_item()
             TransactionsService.save_purchase(purchase_id=purchase_id, date=date, supplier_id=supplier_id, items=items)
-            self.reset_filters()
             self.load_filtered_purchases()
 
     def refresh(self):

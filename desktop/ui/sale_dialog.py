@@ -2,7 +2,7 @@
 from PySide6.QtCore import QDate
 from PySide6.QtWidgets import (
     QDialog, QLabel, QMessageBox,
-    QComboBox, QPushButton, QHeaderView, QSpinBox, QToolButton
+    QComboBox, QHeaderView, QSpinBox, QToolButton
 )
 from services.product_services import ProductService
 from services.agenda_services import AgendaService
@@ -90,25 +90,53 @@ class AddSaleDialog(QDialog):
 
     # Details section
     def add_product_row(self, product_id=None, variant_id=None, quantity=0, unit_price=0.0, active=True):
+
         def get_possibilities():
             options = {}
             for product in ProductService.get_all_products(active=1):
-                if len(product["variants"]) > 0:
+                if len(product["variants"]) > 0: # Has variants
                     variants = []
                     for variant in product["variants"]:
-                        if variant["stock"] > 0:
-                            # Add variant only if it has stock
+                        if variant["stock"] > 0: # If it has stock
                             variants.append(variant)
-                    if len(variants) > 0:
-                        options[product["id"]] = product["name"]
+                    if len(variants) > 0: # If there are variants with stock
+                        product["variants"] = variants
+                        options[product["id"]] = product
                 elif product["stock"] > 0: # If the product doesn't have variants, check if it has stock
-                    options[product["id"]] = product["name"]
+                    options[product["id"]] = product
 
             # Add the products of the sale so they can be on the combo box
             if self.sale:
                 for k, value in self.sale['items'].items():
-                    if k[0] not in options:
-                        options[k[0]] = ProductService.get_product_by_id(k[0])["name"]
+                    if k[0] not in options: # If the product is not already in the options
+                        product = ProductService.get_product_by_id(k[0])
+
+                        variants = []
+                        if k[1] is not None: # It is a variant
+                            variant = ProductService.get_variant_by_id(k[0], k[1])
+                            variant['stock'] = value['quantity'] # Set the stock to the quantity of the sale
+                            variants.append(variant)
+
+                        product['variants'] = variants
+                    else: # Product is already in the options
+                        if k[1] is None: # No variants
+                            options[k[0]]['stock'] += value['quantity']
+                        else: # It is a variant
+                            variants = options[k[0]]['variants']
+                            variant = None
+                            for v in variants:
+                                if v['id'] == k[1]:
+                                    variant = v
+                                    break
+
+                            # Check if variant was there
+                            if variant is not None:
+                                variant['stock'] += value['quantity']
+                            else: # Variant has no stock
+                                variant = ProductService.get_variant_by_id(k[0], k[1])
+                                variant['stock'] = value['quantity']
+                                variants.append(variant)
+
 
             return options
 
@@ -142,7 +170,7 @@ class AddSaleDialog(QDialog):
             variant_combo.setEnabled(True)
             variant_combo.clear()
             variant = None
-            for v in product['variants']:
+            for v in possibilities[product['id']]['variants']:
                 if not variant: # Save the first one
                     variant = v
                 variant_combo.addItem(v['variant_name'], v['id'])
@@ -162,7 +190,6 @@ class AddSaleDialog(QDialog):
         def on_product_selected(price=None):
             product = ProductService.get_product_by_id(int(self.table.cellWidget(row, 0).currentData()))
             unit_label.setText(product['unit'])
-
             if not product['variants']: # The product has no variants
                 if product_id: qty_spin.setMaximum(product['stock'] + quantity)
                 else: qty_spin.setMaximum(product['stock'])
@@ -189,8 +216,12 @@ class AddSaleDialog(QDialog):
 
         # Product
         product_combo = QComboBox()
-        for key, name in possibilities.items():
-            product_combo.addItem(name, key)
+        print("Productos es ")
+        for key, dict in possibilities.items():
+            print(f"{dict['name']}")
+            for v in dict['variants']:
+                print(f"         {v['variant_name']} ")
+            product_combo.addItem(dict['name'], key)
         self.table.setCellWidget(row, 0, product_combo)
         product_combo.currentIndexChanged.connect(lambda: on_product_selected())
         product_combo.setCurrentIndex(0)  # Set the first product as selected
@@ -250,6 +281,7 @@ class AddSaleDialog(QDialog):
 
     # Totals
     def update_row_total(self, row):
+        print("Llamando a update_row_total para la fila:", row)
         qty_spin = self.table.cellWidget(row, 2)
         price_label = self.table.cellWidget(row, 4)
         total_label = self.table.cellWidget(row, 5)

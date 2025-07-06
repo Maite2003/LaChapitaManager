@@ -190,6 +190,7 @@ class SalesPage(QWidget):
             details_btn.clicked.connect(partial(self.open_add_sale_dialog, sale))
             details_btn.setStyleSheet("padding: 4px;")
             self.table.setCellWidget(row, 4, details_btn)
+        self.table.selectionModel().clearSelection()  # Clear selection after saving
 
     def open_add_sale_dialog(self, sale=None):
         def unify_item():
@@ -231,7 +232,6 @@ class SalesPage(QWidget):
                 return QMessageBox.warning(self, "Error de stock", msg)
             print("Items antes del save es ", items)
             TransactionsService.save_sale(sale_id=sale_id, date=date, client_id=client_id, items=items)
-            self.reset_filters()
             self.load_filtered_sales()
 
     def check_stock(self, items, sale):

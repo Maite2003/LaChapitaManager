@@ -74,3 +74,14 @@ class ProductVariant():
                 variant["stock"] += quantity
 
             cursor.execute("""UPDATE product_variant SET stock=? WHERE id=?""", (variant["stock"], variant_id))
+
+    @staticmethod
+    def get_variant_by_id(product_id, variant_id):
+        """Get a specific variant by its ID."""
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM product_variant WHERE product_id=? AND id=?", (product_id, variant_id))
+            row = cursor.fetchone()
+            if row:
+                return {'id': row[0], 'product_id': row[1], 'variant_name': row[2], 'stock': row[3], "stock_low": row[4], 'price': row[5]}
+            return None

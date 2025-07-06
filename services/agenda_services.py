@@ -36,16 +36,7 @@ class AgendaService:
     # ----------- SUPPLIERS -----------
     @staticmethod
     def get_all_suppliers():
-        suppliers = Supplier.get_all()
-        return [
-            {
-                "id": s.id,
-                "name": s.name,
-                "surname": s.surname,
-                "phone": s.phone,
-                "mail": s.mail
-            } for s in suppliers
-        ]
+        return Supplier.get_all()
 
     @staticmethod
     def add_supplier(name, surname="", phone="", mail=""):

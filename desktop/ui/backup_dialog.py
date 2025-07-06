@@ -2,7 +2,8 @@ from datetime import datetime
 
 from PySide6.QtWidgets import QTableWidgetItem, QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QMessageBox, QHeaderView
 
-from utils.backup import get_backups, restore_backup
+from utils.backup import get_backups_drive, restore_backup_drive, get_backups_local, restore_backup_local
+from utils import config
 
 
 class BackupDialog(QDialog):
@@ -45,9 +46,10 @@ class BackupDialog(QDialog):
 
     def load_backups(self):
             self.table.setRowCount(0)
-            backups = get_backups()
+            if config.backup_drive: backups = get_backups_drive()[0]
+            else: backups = get_backups_local()
 
-            for backup in backups[0]:
+            for backup in backups:
                 row_position = self.table.rowCount()
                 self.table.insertRow(row_position)
                 self.table.setItem(row_position, 0, QTableWidgetItem(backup['id']))
@@ -70,7 +72,9 @@ class BackupDialog(QDialog):
 
         if confirm == QMessageBox.StandardButton.Yes:
             file_id = self.table.item(selected_row, 0).text()
-            restore_backup(file_id)
+            title = self.table.item(selected_row, 1).text()
+            if config.backup_drive: restore_backup_drive(file_id)
+            else: restore_backup_local(title)
             QMessageBox.information(self, "Restaurado", "Backup restaurado correctamente.")
             self.accept()
 

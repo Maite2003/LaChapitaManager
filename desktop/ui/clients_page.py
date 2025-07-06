@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QTableWidget, QTableWidgetItem,
-    QHBoxLayout, QCheckBox, QPushButton, QDialog, QHeaderView, QMessageBox, QComboBox
+    QHBoxLayout, QCheckBox, QPushButton, QDialog, QHeaderView, QMessageBox
 )
 from services.agenda_services import AgendaService
 from desktop.ui.client_dialog import ClientDialog
@@ -140,7 +140,7 @@ class ClientsPage(QWidget):
 
     def open_client(self, client=None):
         dialog = ClientDialog(self, client)
-        if dialog.exec_() == QDialog.Accepted:
+        if dialog.exec_() == QDialog.DialogCode.Accepted:
             data = dialog.get_data()
 
             # Validate data
@@ -158,6 +158,7 @@ class ClientsPage(QWidget):
                 # New client
                 AgendaService.add_client(data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
             self.load_clients()
+        self.client_table.selectionModel().clearSelection()  # Clear selection after editing or adding a client
 
     def refresh(self):
         """Refresh the clients page."""

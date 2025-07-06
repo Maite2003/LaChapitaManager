@@ -1,8 +1,11 @@
+import os
+
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, QLabel
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QStackedWidget, QLabel, QMessageBox
+from PySide6.QtCore import Qt, QSettings
 
 from .backup_dialog import BackupDialog
+from .backup_toggle import DriveBackupToggle
 from .clients_page import ClientsPage
 from .home_page import HomePage
 from .suppliers_page import SuppliersPage
@@ -11,22 +14,23 @@ from .inventory_page import InventoryPage
 from .purchases_page import PurchasesPage
 from .sales_page import SalesPage
 
+from utils import config
 from utils.backup import make_backup, authenticate_drive
-from utils.path_utils import resource_path
+from utils.path_utils import resource_path, get_writable_path
 
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        authenticate_drive()
+        if config.backup_drive: authenticate_drive()
 
         self.setWindowTitle("LaChapita Manager")
         logo_path = resource_path("assets/logo.png")
         self.setWindowIcon(QIcon(logo_path))
         self.resize(800, 600)
 
-        # Estilo de botones
+        # Buttons style
         button_style = """
         QToolButton {
             background-color: #2e2b32;
@@ -55,13 +59,13 @@ class MainWindow(QWidget):
         }
         """
 
-        # Botones de navegación
+        # Nav buttons list
         self.nav_btns = []
 
-        # Layout principal horizontal
+        # Main layout
         main_layout = QHBoxLayout(self)
 
-        # Barra lateral
+        # Sidebar navigation widget
         self.sidebar_widget = QWidget()
         self.sidebar_widget.setStyleSheet("background-color: #2e2b32;")
 
@@ -88,16 +92,30 @@ class MainWindow(QWidget):
         self.nav_btns.append(self.suppliers_btn)
         self.categories_btn = QPushButton("Categorías")
         self.nav_btns.append(self.categories_btn)
-        self.backup_btn = QPushButton("Backup")
-        self.nav_btns.append(self.backup_btn)
 
         for btn in self.nav_btns:
             btn.setStyleSheet(button_style)
             btn.setCheckable(True)
             sidebar.addWidget(btn)
-        sidebar.addStretch()  # Espacio al final de la barra lateral
+        sidebar.addStretch()
 
-        # Área de contenido (stacked widget)
+        self.backup_toggle = DriveBackupToggle(
+            checked=config.backup_drive,
+            on_toggle=self.handle_drive_backup_toggle
+        )
+        self.nav_btns.append(self.backup_toggle)
+        self.backup_btn = QPushButton("Backup")
+        self.nav_btns.append(self.backup_btn)
+
+        self.backup_toggle.setStyleSheet(button_style)
+        sidebar.addWidget(self.backup_toggle)
+
+        self.backup_btn.setStyleSheet(button_style)
+        self.backup_btn.setCheckable(True)
+        sidebar.addWidget(self.backup_btn)
+
+
+        # Content area
 
         self.home_page = HomePage()
         self.inventory_page = InventoryPage()
@@ -117,27 +135,57 @@ class MainWindow(QWidget):
         self.stack.addWidget(self.categories_page)
         self.stack.currentChanged.connect(self.on_page_changed)
 
-        # Conectar botones con páginas
-        self.home_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(0), self.activate_button(self.home_btn, self.nav_btns)))
-        self.inventory_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(1), self.activate_button(self.inventory_btn, self.nav_btns)))
-        self.sales_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(2), self.activate_button(self.sales_btn, self.nav_btns)))
-        self.purchases_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(3), self.activate_button(self.purchases_btn, self.nav_btns)))
-        self.clients_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(4), self.activate_button(self.clients_btn, self.nav_btns)))
-        self.suppliers_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(5), self.activate_button(self.suppliers_btn, self.nav_btns)))
-        self.categories_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(6), self.activate_button(self.categories_btn, self.nav_btns)))
+        # Connect buttons to stack changes
+        main_buttons = self.nav_btns[:-2]  # Exclude the backup toggle and backup button
+        self.home_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(0), self.activate_button(self.home_btn, main_buttons)))
+        self.inventory_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(1), self.activate_button(self.inventory_btn, main_buttons)))
+        self.sales_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(2), self.activate_button(self.sales_btn, main_buttons)))
+        self.purchases_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(3), self.activate_button(self.purchases_btn, main_buttons)))
+        self.clients_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(4), self.activate_button(self.clients_btn, main_buttons)))
+        self.suppliers_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(5), self.activate_button(self.suppliers_btn, main_buttons)))
+        self.categories_btn.clicked.connect(lambda: (self.stack.setCurrentIndex(6), self.activate_button(self.categories_btn, main_buttons)))
         self.backup_btn.clicked.connect(lambda: self.on_backup_btn_clicked())
 
-        # Activar el botón de home por defecto
-        self.activate_button(self.home_btn, self.nav_btns)
+        # Activate the home button and set the initial page
+        self.activate_button(self.home_btn, main_buttons)
         self.stack.setCurrentIndex(0)
         self.on_page_changed(0)
 
-        # Agregar al layout principal
+        # Add widgets to the main layout
         main_layout.addWidget(self.sidebar_widget, 1)
         main_layout.addWidget(self.stack, 4)
 
-        # Señales
+        # Signal connections for refreshing pages
         self.inventory_page.product_changed.connect(self.categories_page.refresh)
+
+    def handle_drive_backup_toggle(self, enabled: bool):
+        """
+        Handle the toggle state of the Drive Backup.
+        If enabled, authenticate and set the backup_drive to True.
+        If disabled, set the backup_drive to False.
+        """
+        settings_path = os.path.join(get_writable_path(), "lachapita_config.ini")
+        settings = QSettings(settings_path, QSettings.Format.IniFormat)
+        print("Drive Backup toggle changed to: ", enabled)
+        if enabled:
+            print("Drive Backup enabled.")
+            authenticated, msg = authenticate_drive()
+            if not authenticated:
+                self.backup_toggle.set_checked(False)
+                config.backup_drive = False
+                settings.setValue("backup_drive_enabled", False)
+
+                # Display error message
+                QMessageBox.warning(self, "Error de autenticación", msg)
+
+            else:
+                config.backup_drive = True
+                settings.setValue("backup_drive_enabled", True)
+                print("Drive Backup enabled and authenticated.")
+        else:
+            config.backup_drive = False
+            settings.setValue("backup_drive_enabled", False)
+            print("Drive Backup disabled.")
 
     def closeEvent(self, event):
         """
@@ -173,5 +221,6 @@ class MainWindow(QWidget):
         self.categories_page.refresh()
 
         # Reset to home page
+        self.backup_btn.setChecked(False)
         self.stack.setCurrentIndex(0)
-        self.activate_button(self.home_btn, self.nav_btns)
+        self.activate_button(self.home_btn, self.nav_btns[:-2])  # Exclude the backup toggle and backup button

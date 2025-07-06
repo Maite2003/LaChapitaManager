@@ -160,6 +160,7 @@ class SuppliersPage(QWidget):
                 # New supplier
                 AgendaService.add_supplier(data.get("name"), data.get("surname"), data.get("phone"), data.get("mail"))
             self.load_suppliers()
+        self.supplier_table.selectionModel().clearSelection()  # Clear selection after editing/adding
 
     def refresh(self):
         self.reset_filters()

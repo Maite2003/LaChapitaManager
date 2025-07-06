@@ -201,6 +201,7 @@ class InventoryPage(QWidget):
         """
         Updates the product list and emits a signal to notify other components.
         """
+        self.table.selectionModel().clearSelection()  # Clear selection
         self.product_changed.emit()
         self.reset_filters()
         self.load_filtered_products()

@@ -83,7 +83,7 @@ class Sale:
         with get_connection() as conn:
             cur = conn.cursor()
 
-            # Obtener datos generales de la venta
+            # Get general information of the sale
             cur.execute("""
                    SELECT sale.id, sale.date, sale.client_id, sale.total
                    FROM sale
@@ -92,21 +92,25 @@ class Sale:
             general_info = cur.fetchone()
 
 
-            # Obtener detalles de productos
+            # Get items sold in the sale
             cur.execute("""
                    SELECT sd.product_id, sd.variant_id, sd.quantity, sd.unit_price, product.active
                    FROM sale_detail sd
                    JOIN product ON product.id = sd.product_id
                    WHERE sd.sale_id = ?
                """, (sale_id,))
-            items = [(item[0], item[1], item[2], item[3], item[4]) for item in cur.fetchall()]
+            details = cur.fetchall()
+            sale_items = {}
+            for item in details:
+                key = (item[0], item[1])  # (product_id, variant_id)
+                sale_items[key] = {"quantity": item[2], "unit_price": item[3], "active": item[4]}
 
         return {
             "id": general_info[0],
             "date": datetime.strptime(general_info[1], "%Y-%m-%d").strftime("%d-%m-%Y"),
             "client_id": general_info[2] if general_info[2] else None,
             "total": general_info[3],
-            "items": items  # List of (product_id, variant_id, quantity, unit_price)
+            "items": sale_items  # Dictionary with (product_id, variant_id) as key and a dictionary with quantity and unit_price as value
         }
 
     @staticmethod

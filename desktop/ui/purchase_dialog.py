@@ -127,6 +127,7 @@ class PurchaseDialog(QDialog):
         on_product_selected()
 
     def update_row_total(self, row):
+        print("Llamando a update_row_total para la fila:", row)
         qty_spin = self.table.cellWidget(row, 2)
         price_spin = self.table.cellWidget(row, 4)
         total_label = self.table.cellWidget(row, 5)

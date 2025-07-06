@@ -107,6 +107,8 @@ class HomePage(QWidget):
         self.low_stock_table = QTableWidget()
         self.low_stock_table.setColumnCount(4)
         self.low_stock_table.setHorizontalHeaderLabels(["Producto", "Variante", "Stock Minimo", "Stock actual"])
+        self.low_stock_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)  # Make it read-only
+        self.low_stock_table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)  # Disable selection
         header = self.low_stock_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
@@ -154,17 +156,16 @@ class HomePage(QWidget):
         self.total_sales.setText(f"Ventas totales: ${sales_total:.2f} ({len(sales)} ventas)")
 
         # Update last sales table
+        sales = sales[:5]
         self.last_sales_table.setRowCount(len(sales))
-        if sales:
-            sales = sales[:5]
-            for i, sale in enumerate(sales):
-                self.last_sales_table.setItem(i, 0, QTableWidgetItem(sale["date"]))
-                client = AgendaService.get_client_by_id(sale["client_id"])
-                if client:
-                    self.last_sales_table.setItem(i, 1, QTableWidgetItem(client["name"] + " " + client["surname"]))
-                else:
-                    self.last_sales_table.setItem(i, 1, QTableWidgetItem("-"))
-                self.last_sales_table.setItem(i, 2, QTableWidgetItem(f"${sale['total']:.2f}"))
+        for i, sale in enumerate(sales):
+            self.last_sales_table.setItem(i, 0, QTableWidgetItem(sale["date"]))
+            client = AgendaService.get_client_by_id(sale["client_id"])
+            if client:
+                self.last_sales_table.setItem(i, 1, QTableWidgetItem(client["name"] + " " + client["surname"]))
+            else:
+                self.last_sales_table.setItem(i, 1, QTableWidgetItem("-"))
+            self.last_sales_table.setItem(i, 2, QTableWidgetItem(f"${sale['total']:.2f}"))
         self.table_heigt(self.last_sales_table, 5)
 
         # Update top 5 products table
@@ -182,17 +183,16 @@ class HomePage(QWidget):
         self.total_purchases.setText(f"Compras totales: ${purchases_total:.2f} ({len(purchases)} compras)")
 
         # Update last purchases table
+        purchases = purchases[:5]
         self.last_purchases_table.setRowCount(len(purchases))
-        if purchases:
-            purchases = purchases[:5]
-            for i, purchase in enumerate(purchases):
-                self.last_purchases_table.setItem(i, 0, QTableWidgetItem(purchase["date"]))
-                supplier = AgendaService.get_supplier_by_id(purchase["supplier_id"])
-                if supplier:
-                    self.last_purchases_table.setItem(i, 1, QTableWidgetItem(supplier["name"] + " " + supplier["surname"]))
-                else:
-                    self.last_purchases_table.setItem(i, 1, QTableWidgetItem("-"))
-                self.last_purchases_table.setItem(i, 2, QTableWidgetItem(f"${purchase['total']:.2f}"))
+        for i, purchase in enumerate(purchases):
+            self.last_purchases_table.setItem(i, 0, QTableWidgetItem(purchase["date"]))
+            supplier = AgendaService.get_supplier_by_id(purchase["supplier_id"])
+            if supplier:
+                self.last_purchases_table.setItem(i, 1, QTableWidgetItem(supplier["name"] + " " + supplier["surname"]))
+            else:
+                self.last_purchases_table.setItem(i, 1, QTableWidgetItem("-"))
+            self.last_purchases_table.setItem(i, 2, QTableWidgetItem(f"${purchase['total']:.2f}"))
         self.table_heigt(self.last_purchases_table, 5)
 
         # Update low stock table

@@ -1,5 +1,7 @@
 from models.category import Category
 from models.product import Product
+from models.product_variant import ProductVariant
+
 
 class ProductService:
     @staticmethod
@@ -75,6 +77,15 @@ class ProductService:
         Expects a list of tuples (product_id, variant_id, quantity).
         """
         return Product.check_stock(items)
+
+    # ----------- VARIANT -----------
+
+    @staticmethod
+    def get_variant_by_id(product_id, variant_id):
+        """
+        Returns a variant by its ID.
+        """
+        return ProductVariant.get_variant_by_id(product_id, variant_id)
 
     # ----------- CATEGORY -----------
     @staticmethod

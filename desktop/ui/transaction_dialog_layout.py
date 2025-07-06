@@ -1,3 +1,5 @@
+from selectors import SelectSelector
+
 from PySide6.QtCore import QDate
 from PySide6.QtWidgets import QComboBox, QVBoxLayout, QHBoxLayout, QLabel, QDateEdit, QTableWidget, QPushButton, \
     QHeaderView
@@ -33,6 +35,8 @@ class TransactionDialogLayout(QVBoxLayout):
         self.table = QTableWidget()
         self.table.setColumnCount(7)
         self.table.setHorizontalHeaderLabels(["Producto", "Variante", "Cantidad", "Unidad", "Precio unitario", "Total", " "])
+        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)  # Disable editing of cells
+        self.table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)  # Disable selection
         self.addWidget(self.table)
         header = self.table.horizontalHeader()
         for i in range(6):

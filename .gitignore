@@ -12,18 +12,6 @@ venv/
 *.bak
 *.db-journal
 
-# Credentials or secrets
-mycredential.txt
-desktop/client_secrets.json
-
-# Local database
-*.db
-
-# PyInstaller or other build artifacts
-build/
-dist/
-*.spec
-
 # Logs or debug output
 *.log
 
