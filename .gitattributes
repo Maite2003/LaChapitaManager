@@ -1,11 +1,14 @@
-# Qt Designer UI files
-*.ui linguist-generated=true
-
-# Qt resource files
-*.qrc linguist-generated=true
-
-# SQL file
-*.sql linguist-generated=true
-
 # Force correct classification of Python files
 *.py linguist-language=Python
+
+*.qrc linguist-generated=true
+*.sql linguist-generated=true
+*.ui linguist-generated=true
+*.html linguist-generated=true
+*.tex linguist-generated=true
+
+# Exclude generated folders from language stats
+.idea/** linguist-generated=true
+build/** linguist-generated=true
+dist/** linguist-generated=true
+assets/** linguist-generated=true
