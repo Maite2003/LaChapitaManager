@@ -1,0 +1,11 @@
+# Qt Designer UI files
+*.ui linguist-generated=true
+
+# Qt resource files
+*.qrc linguist-generated=true
+
+# SQL file
+*.sql linguist-generated=true
+
+# Force correct classification of Python files
+*.py linguist-language=Python
