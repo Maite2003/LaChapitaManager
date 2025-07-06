@@ -4,30 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="47376847-251e-4326-8cfe-6e6c240627de" name="Changes" comment="ui design, not finished">
-      <change afterPath="$PROJECT_DIR$/utils/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/lachapita.db" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/backup_toggle.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/db/db.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/backup_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/backup_dialog.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/clients_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/clients_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/home_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/home_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/inventory_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/inventory_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/main_window.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/purchase_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/purchase_dialog.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/purchases_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/purchases_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/sale_dialog.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/sale_dialog.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/sales_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/sales_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/suppliers_page.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/suppliers_page.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/desktop/ui/transaction_dialog_layout.py" beforeDir="false" afterPath="$PROJECT_DIR$/desktop/ui/transaction_dialog_layout.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/product_variant.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/product_variant.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/sale.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/sale.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/agenda_services.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/agenda_services.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/product_services.py" beforeDir="false" afterPath="$PROJECT_DIR$/services/product_services.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/backup.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/backup.py" afterDir="false" />
-    </list>
+    <list default="true" id="47376847-251e-4326-8cfe-6e6c240627de" name="Changes" comment="ui design, not finished" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -154,7 +131,7 @@
       <workItem from="1751486395818" duration="13113000" />
       <workItem from="1751587299321" duration="8009000" />
       <workItem from="1751639020941" duration="16828000" />
-      <workItem from="1751809673015" duration="311000" />
+      <workItem from="1751809673015" duration="785000" />
     </task>
     <task id="LOCAL-00001" summary="basic logic">
       <option name="closed" value="true" />
